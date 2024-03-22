@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KonataNT", "KonataNT\KonataNT.csproj", "{087F540C-0352-4CBF-AC2D-B0250454959A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KonataNT.Proto", "KonataNT.Proto\KonataNT.Proto.csproj", "{0BC92DC5-AAD2-477B-90F9-D46C762E5270}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KonataNT.Proto.Generator", "KonataNT.Proto.Generator\KonataNT.Proto.Generator.csproj", "{432FC087-2E61-4113-AC62-D71D8CF33ED1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KonataNT.Proto.Test", "KonataNT.Proto.Test\KonataNT.Proto.Test.csproj", "{46EA23F3-F353-467A-A48B-F40BA037A688}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{087F540C-0352-4CBF-AC2D-B0250454959A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{087F540C-0352-4CBF-AC2D-B0250454959A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{087F540C-0352-4CBF-AC2D-B0250454959A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{087F540C-0352-4CBF-AC2D-B0250454959A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BC92DC5-AAD2-477B-90F9-D46C762E5270}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BC92DC5-AAD2-477B-90F9-D46C762E5270}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BC92DC5-AAD2-477B-90F9-D46C762E5270}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BC92DC5-AAD2-477B-90F9-D46C762E5270}.Release|Any CPU.Build.0 = Release|Any CPU
+		{432FC087-2E61-4113-AC62-D71D8CF33ED1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{432FC087-2E61-4113-AC62-D71D8CF33ED1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{432FC087-2E61-4113-AC62-D71D8CF33ED1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{432FC087-2E61-4113-AC62-D71D8CF33ED1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46EA23F3-F353-467A-A48B-F40BA037A688}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46EA23F3-F353-467A-A48B-F40BA037A688}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46EA23F3-F353-467A-A48B-F40BA037A688}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46EA23F3-F353-467A-A48B-F40BA037A688}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
