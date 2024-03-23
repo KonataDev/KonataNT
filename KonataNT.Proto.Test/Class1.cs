@@ -1,9 +1,15 @@
-﻿using KonataNT.Proto;
+﻿namespace KonataNT.Proto.Test;
 
-Console.WriteLine("Awoo");
+internal class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine("Awoo");
+    }
+}
 
 [ProtoContract]
-class Awoo
+public partial class Awoo
 {
     
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -44,7 +45,7 @@ public partial class ProtoSourceGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(source, static (context, source) =>
         {
             var (typeDeclaration, compilation) = source.Left.Item1;
-            var logPath = source.Left.Item2;
+            string? logPath = source.Left.Item2;
             var (langVersion, net7) = source.Right;
 
             Generate(typeDeclaration, compilation, logPath, new GeneratorContext(context, langVersion, net7));
@@ -53,6 +54,7 @@ public partial class ProtoSourceGenerator : IIncrementalGenerator
     
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        Debugger.Launch();
         RegisterProtoContract(context);
     }
 }

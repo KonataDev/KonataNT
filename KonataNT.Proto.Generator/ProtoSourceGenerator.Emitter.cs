@@ -41,6 +41,18 @@ public partial class ProtoSourceGenerator
 
 using System;
 using KonataNT.Proto;
+using KonataNT.Proto.Serialization;
 ");
+
+        // get visibility
+        string visibility = syntax.GetVisibility();
+        sb.AppendLine($"namespace {typeSymbol.ContainingNamespace.ToDisplayString()};");
+        sb.AppendLine();
+        sb.AppendLine($"{visibility} partial class {typeSymbol.Name}");
+        sb.AppendLine("{");
+        sb.AppendLine("}");
+
+        string code = sb.ToString();
+        context.AddSource($"{typeSymbol.Name}.ProtoContracted.g.cs", code);
     }
 }

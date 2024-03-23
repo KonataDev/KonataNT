@@ -10,4 +10,9 @@ public static class TypeDeclarationExt
     {
         return typeDeclaration.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
     }
+    
+    public static string GetVisibility(this TypeDeclarationSyntax typeDeclaration)
+    {
+        return typeDeclaration.Modifiers.FirstOrDefault(m => m.IsKind(SyntaxKind.PublicKeyword)).ToString();
+    }
 }
