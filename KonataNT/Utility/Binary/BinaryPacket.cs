@@ -1,9 +1,10 @@
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace KonataNT.Utility.Binary;
 
-internal unsafe class BinaryPacket : IDisposable
+internal unsafe class BinaryPacket : IDisposable  // TODO: Reimplement im raw byte[]
 {
     private readonly MemoryStream _stream;
 
@@ -31,6 +32,12 @@ internal unsafe class BinaryPacket : IDisposable
         _reader = new BinaryReader(_stream);
     }
 
+    public BinaryPacket WriteString(string value, Prefix flag, int addition = 0)
+    {
+        WriteLength(value.Length, flag, addition);
+        return WriteBytes(Encoding.UTF8.GetBytes(value));
+    }
+
     public BinaryPacket WriteBytes(ReadOnlySpan<byte> value, Prefix flag, int addition = 0)
     {
         WriteLength(value.Length, flag, addition);
@@ -43,11 +50,11 @@ internal unsafe class BinaryPacket : IDisposable
         int prefixLength = (byte)flag & 0b0111;
 
         int length = (lengthCounted ? prefixLength + origin : origin) + addition;
-        _ = length switch
+        _ = prefixLength switch
         {
-            1 => WriteByte((byte)length),
-            2 => WriteUshort((ushort)length),
-            4 => WriteUint((uint)length),
+            sizeof(byte) => WriteByte((byte)length),
+            sizeof(ushort) => WriteUshort((ushort)length),
+            sizeof(uint) => WriteUint((uint)length),
             _ => throw new InvalidDataException("Invalid Prefix is given")
         };
 
@@ -61,7 +68,7 @@ internal unsafe class BinaryPacket : IDisposable
         return this;
     }
 
-    private BinaryPacket WritePacket(BinaryPacket value)
+    public BinaryPacket WritePacket(BinaryPacket value)
     {
         value._stream.Seek(0, SeekOrigin.Begin);
         value._stream.CopyTo(_stream);
@@ -121,10 +128,10 @@ internal unsafe class BinaryPacket : IDisposable
         return WriteBytes(buffer);
     }
 
-    public BinaryPacket WriteLong(ulong value)
+    public BinaryPacket WriteLong(long value)
     {
         value = BinaryPrimitives.ReverseEndianness(value);
-        var buffer = new ReadOnlySpan<byte>((byte*)&value, sizeof(ulong));
+        var buffer = new ReadOnlySpan<byte>((byte*)&value, sizeof(long));
         return WriteBytes(buffer);
     }
 
@@ -135,6 +142,98 @@ internal unsafe class BinaryPacket : IDisposable
         return WriteLength((int)packet.Length, flag, addition).WritePacket(packet);
     }
     
+    private int ReadLength(Prefix flag)
+    {
+        bool lengthCounted = (flag & Prefix.WithPrefix) > 0;
+        int prefixLength = (byte)flag & 0b0111;
+
+        int length = prefixLength switch
+        {
+            1 => _stream.ReadByte(),
+            2 => ReadUshort(),
+            4 => (int)ReadUint(),
+            _ => throw new InvalidDataException("Invalid Prefix is given")
+        };
+
+        if (lengthCounted) length -= prefixLength;
+    
+        return length;
+    }
+
+    public bool ReadBool() => Convert.ToBoolean(_stream.ReadByte());
+    
+    public ushort ReadUshort()
+    {
+        Span<byte> buffer = stackalloc byte[sizeof(ushort)];
+        _ = _stream.Read(buffer);
+        return BinaryPrimitives.ReadUInt16LittleEndian(buffer);
+    }
+
+    public uint ReadUint()
+    {
+        Span<byte> buffer = stackalloc byte[sizeof(uint)];
+        _ = _stream.Read(buffer);
+        return BinaryPrimitives.ReadUInt32LittleEndian(buffer);
+    }
+
+    public ulong ReadUlong()
+    {
+        Span<byte> buffer = stackalloc byte[sizeof(ulong)];
+        _ = _stream.Read(buffer);
+        return BinaryPrimitives.ReadUInt64LittleEndian(buffer);
+    }
+
+    public sbyte ReadSbyte()
+    {
+        Span<byte> buffer = stackalloc byte[sizeof(sbyte)];
+        _ = _stream.Read(buffer);
+        return (sbyte)buffer[0];
+    }
+
+    public short ReadShort()
+    {
+        Span<byte> buffer = stackalloc byte[sizeof(short)];
+        _ = _stream.Read(buffer);
+        return BinaryPrimitives.ReadInt16LittleEndian(buffer);
+    }
+
+    public int ReadInt()
+    {
+        Span<byte> buffer = stackalloc byte[sizeof(int)];
+        _ = _stream.Read(buffer);
+        return BinaryPrimitives.ReadInt32LittleEndian(buffer);
+    }
+
+    public long ReadLong()
+    {
+        Span<byte> buffer = stackalloc byte[sizeof(long)];
+        _ = _stream.Read(buffer);
+        return BinaryPrimitives.ReadInt64LittleEndian(buffer);
+    }
+
+    public Span<byte> ReadBytes(int count)
+    {
+        Span<byte> buffer =  new byte[count];
+        _ = _stream.Read(buffer);
+        return buffer;
+    }
+
+    public Span<byte> ReadBytes(Prefix flag)
+    {
+        int length = ReadLength(flag);
+        return ReadBytes(length);
+    }
+
+    public string ReadString(Prefix flag)
+    {
+        int length = ReadLength(flag);
+        return Encoding.UTF8.GetString(ReadBytes(length));
+    }
+    
+    public string ReadString(int count) => Encoding.UTF8.GetString(ReadBytes(count));
+
+    public BinaryPacket ReadPacket(int count) => new(ReadBytes(count).ToArray());
+
     public void Skip(int length) => _reader.BaseStream.Seek(length, SeekOrigin.Current);
     
     public bool IsAvailable(int length) => _stream.Length - _stream.Position >= length;

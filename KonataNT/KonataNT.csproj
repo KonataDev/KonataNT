@@ -10,6 +10,7 @@
 
     <ItemGroup>
       <Folder Include="Common\" />
+      <Folder Include="Core\Network\" />
     </ItemGroup>
 
 </Project>
