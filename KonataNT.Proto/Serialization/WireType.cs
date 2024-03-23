@@ -1,4 +1,4 @@
-namespace KonataNT.Proto.Core;
+namespace KonataNT.Proto.Serialization;
 
 public enum WireType : byte
 {

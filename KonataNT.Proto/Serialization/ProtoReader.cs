@@ -1,6 +1,6 @@
 using KonataNT.Proto.Utility;
 
-namespace KonataNT.Proto.Core;
+namespace KonataNT.Proto.Serialization;
 
 internal class ProtoReader(Stream stream)
 {

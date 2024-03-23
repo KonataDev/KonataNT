@@ -1,4 +1,4 @@
-namespace KonataNT.Proto.Core;
+namespace KonataNT.Proto.Serialization;
 
 internal class ProtoWriter(Stream stream)
 {
