@@ -47,6 +47,7 @@ internal class ContextVisitor(IGeneratorContext context) : CSharpSyntaxWalker
                     Tag = tag,
                     IsNested = property.Type.IsUserDefinedType(),
                     WireType = GetPropertyVarIntType(array.ElementType),
+                    IsNullable = property.Type.IsNullableType(),
                     IsEnumerable = true
                 };
             }
@@ -58,21 +59,21 @@ internal class ContextVisitor(IGeneratorContext context) : CSharpSyntaxWalker
                     Type = property.Type,
                     Tag = tag,
                     IsNested = property.Type.IsUserDefinedType(),
-                    WireType = GetPropertyVarIntType(property.Type)
+                    WireType = GetPropertyVarIntType(property.Type),
+                    IsNullable = property.Type.IsNullableType(),
                 };
             }
             
             List.Add(meta);
         }
+        
         base.Visit(node);
     }
     
-    private WireType GetPropertyVarIntType(TypeSyntax type)
+    private static WireType GetPropertyVarIntType(TypeSyntax type)
     {
-        if (type.IsUserDefinedType())
-        {
-            return WireType.LengthDelimited;
-        }
+        if (type is NullableTypeSyntax nullable) type = nullable.ElementType;
+        if (type.IsUserDefinedType()) return WireType.LengthDelimited;
         
         return type.ToString() switch
         {

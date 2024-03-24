@@ -3,7 +3,7 @@
   "profiles": {
     "Generators": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "../KonataNT.Proto.Test/KonataNT.Proto.Test.csproj"
+      "targetProject": "../KonataNT/KonataNT.csproj"
     }
   }
 }

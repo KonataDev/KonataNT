@@ -99,6 +99,13 @@ using KonataNT.Proto.Serialization;
     private static void EmitMemberSerialize(StringBuilder sb, ProtoMemberMeta meta, string name, bool indent)
     {
         string i = indent ? "    " : "";
+        if (meta.IsNullable)
+        {
+            i += "    ";
+            sb.AppendLine($"        if ({name} != null)");
+            sb.AppendLine("        {");
+        }
+        
         if (meta.IsNested)
         {
             string variableName = name.ToLower() + "Serialized";
@@ -119,6 +126,8 @@ using KonataNT.Proto.Serialization;
                 
             sb.AppendLine($"{i}        writer.{func}({name});");
         }
+        
+        if (meta.IsNullable) sb.AppendLine("        }");
     }
     
     private static void EmitDeserializer(TypeDeclarationSyntax syntax, ContextVisitor context, StringBuilder sb)

@@ -39,5 +39,7 @@ public partial class TestCase
 [ProtoContract]
 public partial class TestCase1
 {
-    [ProtoMember(1)] public uint Awoo { get; set;}
+    [ProtoMember(1)] public uint Awoo { get; set; }
+
+    [ProtoMember(2)] public string Liwenxuan04 { get; set; } = "Awoo";
 }

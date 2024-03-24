@@ -19,11 +19,19 @@ public static class SourceGeneratorExt
         return modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword)) ? "private" : "internal";
     }
     
-    public static bool IsUserDefinedType(this TypeSyntax typeSyntax) => 
-        typeSyntax is IdentifierNameSyntax or GenericNameSyntax or QualifiedNameSyntax;
+    public static bool IsUserDefinedType(this TypeSyntax typeSyntax)
+    {
+        if (typeSyntax is IdentifierNameSyntax or GenericNameSyntax or QualifiedNameSyntax) return true;
+        if (typeSyntax is NullableTypeSyntax nullable) return IsUserDefinedType(nullable.ElementType);
+        
+        return false;
+    }
 
     public static bool IsEnumerableType(this TypeSyntax typeSyntax) =>
         typeSyntax is ArrayTypeSyntax;
+    
+    public static bool IsNullableType(this TypeSyntax typeSyntax) =>
+        typeSyntax is NullableTypeSyntax;
     
     
     public static IEnumerable<AttributeSyntax> GetAttributes(this SyntaxNode syntaxNode) => 
