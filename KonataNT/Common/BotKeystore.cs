@@ -42,9 +42,9 @@ public class BotKeystore
     internal string? KeySign { get; set; }
     
 
-    internal EcdhProvider PrimeProvider { get; } = new(EllipticCurve.Prime256V1);
+    internal EcdhImpl PrimeProvider { get; } = new(EcdhImpl.CryptMethod.Prime256V1, false);
     
-    internal EcdhProvider ScepProvider { get; } = new(EllipticCurve.Secp192K1);
+    internal EcdhImpl ScepProvider { get; } = new(EcdhImpl.CryptMethod.Secp192K1);
 }
 
 [Serializable]

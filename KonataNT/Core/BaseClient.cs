@@ -1,5 +1,7 @@
 using KonataNT.Common;
 using KonataNT.Events;
+using KonataNT.Utility.Binary;
+using KonataNT.Utility.Crypto;
 
 namespace KonataNT.Core;
 
@@ -69,6 +71,54 @@ public class BaseClient
     {
         
     }
+
+    #region Private Builders
+
+    private BinaryPacket BuildCode2dPacket(int cmd, byte[] buffer) => new BinaryPacket()
+        .WriteByte(0)
+        .WriteUshort((ushort)(53 + buffer.Length))
+        .WriteUint(0x72)
+        .WriteBytes(new byte[3])
+        .WriteUint((uint)DateTimeOffset.Now.ToUnixTimeSeconds())
+        .WriteByte(0x02)
+        .WriteUshort((ushort)(49 + buffer.Length)) // actually this is manually calculated, real implementation is seen at MiraiGo
+        .WriteUshort((ushort)cmd)
+        .WriteBytes(new byte[21])
+        .WriteByte(3)
+        .WriteUint(50)
+        .WriteBytes(new byte[14])
+        .WriteUint(0)
+        .WriteBytes(buffer);
+
+    private BinaryPacket BuildWtLoginPacket(string cmd, byte[] buffer)
+    {
+        var encrypted = TeaProvider.Encrypt(buffer.AsSpan(), KeyStore.ScepProvider.ShareKey.AsSpan());
+        var writer = new BinaryPacket()
+            .WriteUshort(8001)
+            .WriteUshort((ushort)(cmd == "wtlogin.login" ? 2064 : 2066))
+            .WriteUshort(0)
+            .WriteUint(KeyStore.Uin)
+            .WriteByte(3)
+            .WriteByte(135)
+            .WriteUint(0)
+            .WriteByte(19)
+            .WriteUshort(0)
+            .WriteUshort(0)
+            .WriteUint(0)
+            .WriteByte(1)
+            .WriteByte(1)
+            .WriteBytes(new byte[16])
+            .WriteUshort(0x102)
+            .WriteBytes(KeyStore.ScepProvider.GetPublicKey(), Prefix.Uint16 | Prefix.LengthOnly)
+            .WriteBytes(encrypted.AsSpan())
+            .WriteByte(3);
+        
+        return new BinaryPacket()
+            .WriteByte(2)
+            .WriteUshort((ushort)(writer.Length + 3))
+            .WritePacket(writer);
+    }
+    #endregion
 }
 
 public enum CredentialType
