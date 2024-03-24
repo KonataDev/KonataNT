@@ -1,6 +1,6 @@
 namespace KonataNT.Proto.Serialization;
 
-public enum WireType : byte
+public enum WireType : uint
 {
     VarInt = 0,
     FixedInt64 = 1,

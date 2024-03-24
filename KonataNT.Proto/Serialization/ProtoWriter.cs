@@ -1,33 +1,174 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
 namespace KonataNT.Proto.Serialization;
 
-internal class ProtoWriter(Stream stream)
+public ref struct ProtoWriter
 {
+    private const int BufferSize = 1024;
+
+    private readonly Span<byte> _span;
+
+    private readonly Stream? _underlyingStream;
+
+    private nint _position;
+
+    private readonly ref byte First => ref MemoryMarshal.GetReference(_span);
+
+    private readonly nint Length => (nint)(uint)_span.Length;
+
+    public ProtoWriter(Stream? stream) : this(stream, BufferSize)
+    {
+
+    }
+
+    public ProtoWriter(Stream? stream, int bufferSize) : this(GC.AllocateUninitializedArray<byte>(bufferSize), 0, bufferSize, stream)
+    {
+
+    }
+
+    public ProtoWriter(byte[] buffer) : this(buffer, 0, buffer.Length)
+    {
+
+    }
+
+    public ProtoWriter(byte[] buffer, int offset, int length) : this(buffer, offset, length, null)
+    {
+
+    }
+
+    private ProtoWriter(byte[] buffer, int offset, int length, Stream? underlyingStream)
+    {
+        _span = new Span<byte>(buffer, offset, length);
+        _underlyingStream = underlyingStream;
+        _position = 0;
+    }
+
     public void WriteHead(WireType type, uint tag)
     {
-        uint head = tag << 3 | (byte)type;
+        uint head = (tag << 3) + (uint)type;
         WriteVarInt(head);
     }
 
-    private void WriteVarInt(ulong value)
+    public void WriteBytes(ReadOnlySpan<byte> value)
     {
-        if (value >= 127)
+        if (_position < Length)
         {
-            int len = 0;
-            Span<byte> buffer = stackalloc byte[10];
-
-            do
-            {
-                buffer[len] = (byte)((value & 127) | 128);
-                value >>= 7;
-                ++len;
-            } while (value > 127);
-
-            buffer[len] = (byte)value;
-            stream.Write(buffer[..(len + 1)]);
+            var dst = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref First, _position), value.Length);
+            value.CopyTo(dst);
+            _position += value.Length;
+            return;
         }
-        else 
-        {
-            stream.WriteByte((byte)value);
-        }
+        Flush();
+        _underlyingStream!.Write(value);
     }
+
+    public unsafe void WriteVarInt(ulong value)
+    {
+        if (value < 0x80)
+        {
+            WriteRawByte((byte)value);
+            return;
+        }
+        ref byte first = ref First;
+        nint position = _position;
+        nint length = Length;
+        while (position < length)
+        {
+            if (value < 0x80)
+            {
+                Unsafe.Add(ref first, position) = (byte)value;
+                position++;
+                _position = position;
+                return;
+            }
+            Unsafe.Add(ref first, position) = (byte)((value & 0x7F) | 0x80);
+            position++;
+            value >>= 7;
+        }
+        _position = position;
+        WriteVarIntSlowPath(value);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private unsafe void WriteVarIntSlowPath(ulong value)
+    {
+        while (value > 127)
+        {
+            WriteRawByte((byte)((value & 0x7F) | 0x80));
+            value >>= 7;
+        }
+        WriteRawByte((byte)value);
+    }
+
+    private void WriteRawByte(byte value)
+    {
+        if (_position == Length)
+        {
+            Flush();
+        }
+        Unsafe.Add(ref First, _position) = value;
+        _position++;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void Flush()
+    {
+        if (_underlyingStream == null)
+        {
+            throw new InvalidOperationException();
+        }
+        _underlyingStream.Write(MemoryMarshal.CreateReadOnlySpan(ref First, (int)_position));
+        _position = 0;
+    }
+
+    //public BinaryPacket WriteBytes(byte[] value, Prefix prefixFlag = Prefix.None, byte limitedLength = 0)
+    //{
+
+    //}
+
+    //public BinaryPacket WriteString(string value, Prefix prefixFlag = Prefix.None, Encoding? encoding = null, byte limitedLength = 0)
+    //{
+
+    //}
+
+    //public BinaryPacket WriteBool(bool value)
+    //{
+
+    //}
+
+    //public BinaryPacket WriteShort(short value, bool isLittleEndian = true)
+    //{
+
+    //}
+
+    //public BinaryPacket WriteUshort(ushort value, bool isLittleEndian = true)
+    //{
+
+    //}
+
+    //public BinaryPacket WriteInt(int value, bool isLittleEndian = true)
+    //{
+
+    //}
+
+    //public BinaryPacket WriteUint(uint value, bool isLittleEndian = true)
+    //{
+
+    //}
+
+    //public BinaryPacket WriteLong(long value, bool isLittleEndian = true)
+    //{
+
+    //}
+
+    //public BinaryPacket WriteUlong(ulong value, bool isLittleEndian = true)
+    //{
+
+    //}
+
+    //public BinaryPacket WritePacket(BinaryPacket packet)
+    //{
+
+    //}
 }
