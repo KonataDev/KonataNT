@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -23,9 +21,7 @@ public partial class ProtoSourceGenerator : IIncrementalGenerator
         
         var typeDeclarations = context.SyntaxProvider.ForAttributeWithMetadataName(
             ProtoContractAttributeFullName,
-            predicate: static (node, _) => node is ClassDeclarationSyntax
-                or StructDeclarationSyntax
-                or RecordDeclarationSyntax,
+            predicate: static (node, _) => node is ClassDeclarationSyntax or StructDeclarationSyntax,
             transform: static (context, _) => (TypeDeclarationSyntax)context.TargetNode);
         
         var parseOptions = context.ParseOptionsProvider.Select((parseOptions, _) =>
@@ -54,7 +50,6 @@ public partial class ProtoSourceGenerator : IIncrementalGenerator
     
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        Debugger.Launch();
         RegisterProtoContract(context);
     }
 }

@@ -13,4 +13,12 @@ public class DiagnosticDescriptors
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+    
+    public static readonly DiagnosticDescriptor MustHaveGetterAndSetter = new(
+        id: "PROTO002",
+        title: "ProtoMember property must have both getters and setters",
+        messageFormat: "The ProtoMember property '{0}' must have both public getters and setters",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }

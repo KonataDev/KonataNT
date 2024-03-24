@@ -53,9 +53,9 @@ internal class GeneratorContext(SourceProductionContext context, LanguageVersion
     }
 }
 
-class Comparer : IEqualityComparer<(TypeDeclarationSyntax, Compilation)>
+internal class Comparer : IEqualityComparer<(TypeDeclarationSyntax, Compilation)>
 {
-    public static readonly Comparer Instance = new Comparer();
+    public static readonly Comparer Instance = new();
 
     public bool Equals((TypeDeclarationSyntax, Compilation) x, (TypeDeclarationSyntax, Compilation) y)
     {

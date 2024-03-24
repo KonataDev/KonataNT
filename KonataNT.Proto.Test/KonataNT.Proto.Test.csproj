@@ -5,11 +5,12 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\KonataNT.Proto\KonataNT.Proto.csproj" />
       <ProjectReference Include="..\KonataNT.Proto.Generator\KonataNT.Proto.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
-
 </Project>
