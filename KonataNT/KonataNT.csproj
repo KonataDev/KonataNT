@@ -9,8 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Common\" />
-      <Folder Include="Core\Network\" />
+      <Folder Include="Core\Packet\" />
     </ItemGroup>
 
 </Project>
