@@ -1,3 +1,6 @@
+using KonataNT.Common;
+using KonataNT.Events;
+
 namespace KonataNT.Core;
 
 /// <summary>
@@ -5,6 +8,31 @@ namespace KonataNT.Core;
 /// </summary>
 public class BaseClient
 {
+    private const string Tag = nameof(BaseClient);
+    
+    public string BotName => KeyStore.Info.Name;
+
+    public uint BotUin => KeyStore.Uin;
+    
+    internal BotKeystore KeyStore { get; init; }
+    
+    internal BotAppInfo AppInfo { get; init; }
+    
+    internal BotConfig Config { get; init; }
+    
+    internal EventEmitter EventEmitter { get; init; }
+    
+    internal ILogger Logger { get; init; }
+    
+    internal BaseClient(BotKeystore keystore, BotConfig config)
+    {
+        KeyStore = keystore;
+        AppInfo = BotAppInfo.ProtocolToAppInfo[config.Protocol];
+        Config = config;
+        EventEmitter = new EventEmitter();
+        Logger = config.Logger ?? new DefaultLogger(EventEmitter);
+    }
+    
     public async Task FetchQrCode()
     {
         
@@ -17,6 +45,12 @@ public class BaseClient
 
     public async Task Login(Memory<byte> credentials, CredentialType type)
     {
+        if (KeyStore is not { ExchangeKey: not null, KeySign: not null })
+        {
+            Logger.LogFatal(Tag, "Please exchange key first.");
+            return;
+        }
+        
         string command = type switch
         {
             CredentialType.EasyLogin => "trpc.login.ecdh.EcdhService.SsoNTLoginEasyLogin",
@@ -27,12 +61,7 @@ public class BaseClient
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
     }
-
-    internal async Task SendPacket(Memory<byte> payload, string command)
-    {
-        
-    }
-
+    
     /// <summary>
     /// Called when Bot is online through login, or reconnected / session resumed.
     /// </summary>

@@ -159,6 +159,8 @@ internal unsafe class BinaryPacket : IDisposable  // TODO: Reimplement im raw by
     
         return length;
     }
+    
+    public byte ReadByte() => (byte)_stream.ReadByte();
 
     public bool ReadBool() => Convert.ToBoolean(_stream.ReadByte());
     

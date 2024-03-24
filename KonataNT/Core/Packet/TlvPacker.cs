@@ -1,4 +1,5 @@
 using KonataNT.Common;
+using KonataNT.Core.Packet.Login;
 using KonataNT.Utility.Binary;
 
 namespace KonataNT.Core.Packet;
@@ -67,6 +68,17 @@ internal class TlvPacker(BotKeystore keystore, BotAppInfo appInfo)
         0x66 => new BinaryPacket()
             .WriteInt(appInfo.PtOsVersion),
         
+        0xD2 => new BinaryPacket()
+            .WriteBytes(new NTLoginInfo
+            {
+                SystemInfo = new NTSystemInfo
+                {
+                    Os = appInfo.Os,
+                    DeviceName = "Lagrange"
+                },
+                Type = [0x30, 0x01]
+            }.Serialize()),
         
+        _ => throw new InvalidDataException()
     };
 }

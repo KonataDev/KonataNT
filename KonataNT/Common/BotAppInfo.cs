@@ -114,4 +114,11 @@ public class BotAppInfo
         MainSigMap = 169742560,
         SubSigMap = 0
     };
+    
+    public static readonly Dictionary<Protocols, BotAppInfo> ProtocolToAppInfo = new()
+    {
+        { Protocols.Windows, Windows },
+        { Protocols.Linux, Linux },
+        { Protocols.MacOs, MacOs },
+    };
 }

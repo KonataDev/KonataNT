@@ -7,14 +7,11 @@ public class BotFather
     /// </summary>
     public static BotClient CreateBot(BotConfig config, uint uin, string password)
     {
-        return new BotClient();
+        return new BotClient(new BotKeystore(uin, password), config);
     }
 
     /// <summary>
     /// Create the <see cref="BotClient"/> with saved <see cref="BotKeystore"/> to preform SessionLogin and EasyLogin
     /// </summary>
-    public static BotClient CreateBot(BotConfig config, BotKeystore keystore)
-    {
-        return new BotClient();
-    }
+    public static BotClient CreateBot(BotConfig config, BotKeystore keystore) => new(keystore, config);
 }
