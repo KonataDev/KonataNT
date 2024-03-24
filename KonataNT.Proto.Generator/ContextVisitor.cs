@@ -36,14 +36,31 @@ internal class ContextVisitor(IGeneratorContext context) : CSharpSyntaxWalker
 
             var argument = attribute.ArgumentList?.Arguments[0] ?? throw new InvalidOperationException("ProtoMember attribute must have a tag argument.");
             int tag = int.Parse(argument.Expression.ToString());
-            
-            var meta = new ProtoMemberMeta
+
+            ProtoMemberMeta meta;
+            if (property.Type.IsEnumerableType() && property.Type is ArrayTypeSyntax array && GetPropertyVarIntType(property.Type) == WireType.Invalid)
             {
-                Name = property.Identifier.Text,
-                Type = property.Type,
-                Tag = tag,
-                IsNested = property.Type.IsUserDefinedType()
-            };
+                meta = new ProtoMemberMeta
+                {
+                    Name = property.Identifier.Text,
+                    Type = property.Type,
+                    Tag = tag,
+                    IsNested = property.Type.IsUserDefinedType(),
+                    WireType = GetPropertyVarIntType(array.ElementType),
+                    IsEnumerable = true
+                };
+            }
+            else
+            {
+                meta = new ProtoMemberMeta
+                {
+                    Name = property.Identifier.Text,
+                    Type = property.Type,
+                    Tag = tag,
+                    IsNested = property.Type.IsUserDefinedType(),
+                    WireType = GetPropertyVarIntType(property.Type)
+                };
+            }
             
             List.Add(meta);
         }
@@ -67,9 +84,10 @@ internal class ContextVisitor(IGeneratorContext context) : CSharpSyntaxWalker
             "ushort" => WireType.VarInt,
             "byte" => WireType.VarInt,
             "sbyte" => WireType.VarInt,
+
             "string" => WireType.LengthDelimited,
             "byte[]" => WireType.LengthDelimited,
-            _ => throw new InvalidOperationException("Invalid type for VarInt.")
+            _ => WireType.Invalid
         };
     }
 }

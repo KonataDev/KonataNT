@@ -12,11 +12,14 @@ public class ProtoMemberMeta
     
     public bool IsNested { get; set; }
     
+    public bool IsEnumerable { get; set; }
+    
     public WireType WireType { get; set; }
 }
 
 public enum WireType
 {
+    Invalid = -1,
     VarInt = 0,
     Fixed64 = 1,
     Fixed32 = 5,

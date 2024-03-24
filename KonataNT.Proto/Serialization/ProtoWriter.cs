@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace KonataNT.Proto.Serialization;
 
@@ -17,25 +18,13 @@ public ref struct ProtoWriter
 
     private readonly nint Length => (nint)(uint)_span.Length;
 
-    public ProtoWriter(Stream? stream) : this(stream, BufferSize)
-    {
+    public ProtoWriter(Stream? stream) : this(stream, BufferSize) { }
 
-    }
+    public ProtoWriter(Stream? stream, int bufferSize) : this(GC.AllocateUninitializedArray<byte>(bufferSize), 0, bufferSize, stream) { }
 
-    public ProtoWriter(Stream? stream, int bufferSize) : this(GC.AllocateUninitializedArray<byte>(bufferSize), 0, bufferSize, stream)
-    {
+    public ProtoWriter(byte[] buffer) : this(buffer, 0, buffer.Length) { }
 
-    }
-
-    public ProtoWriter(byte[] buffer) : this(buffer, 0, buffer.Length)
-    {
-
-    }
-
-    public ProtoWriter(byte[] buffer, int offset, int length) : this(buffer, offset, length, null)
-    {
-
-    }
+    public ProtoWriter(byte[] buffer, int offset, int length) : this(buffer, offset, length, null) { }
 
     private ProtoWriter(byte[] buffer, int offset, int length, Stream? underlyingStream)
     {
@@ -90,6 +79,21 @@ public ref struct ProtoWriter
         WriteVarIntSlowPath(value);
     }
 
+    public unsafe void WriteVarInt(long value) => WriteVarInt((ulong)value);
+
+    public unsafe void WriteLengthDelimited(string value)
+    {
+        var bytes = Encoding.UTF8.GetBytes(value);
+        WriteLengthDelimited(bytes.AsSpan());
+    }
+
+    public unsafe void WriteLengthDelimited(Span<byte> value)
+    {
+        int length = value.Length;
+        WriteVarInt((uint)length);
+        WriteBytes(value);
+    }
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     private unsafe void WriteVarIntSlowPath(ulong value)
     {
@@ -112,7 +116,7 @@ public ref struct ProtoWriter
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private void Flush()
+    public void Flush()
     {
         if (_underlyingStream == null)
         {
@@ -122,53 +126,11 @@ public ref struct ProtoWriter
         _position = 0;
     }
 
-    //public BinaryPacket WriteBytes(byte[] value, Prefix prefixFlag = Prefix.None, byte limitedLength = 0)
-    //{
-
-    //}
-
-    //public BinaryPacket WriteString(string value, Prefix prefixFlag = Prefix.None, Encoding? encoding = null, byte limitedLength = 0)
-    //{
-
-    //}
-
-    //public BinaryPacket WriteBool(bool value)
-    //{
-
-    //}
-
-    //public BinaryPacket WriteShort(short value, bool isLittleEndian = true)
-    //{
-
-    //}
-
-    //public BinaryPacket WriteUshort(ushort value, bool isLittleEndian = true)
-    //{
-
-    //}
-
-    //public BinaryPacket WriteInt(int value, bool isLittleEndian = true)
-    //{
-
-    //}
-
-    //public BinaryPacket WriteUint(uint value, bool isLittleEndian = true)
-    //{
-
-    //}
-
-    //public BinaryPacket WriteLong(long value, bool isLittleEndian = true)
-    //{
-
-    //}
-
-    //public BinaryPacket WriteUlong(ulong value, bool isLittleEndian = true)
-    //{
-
-    //}
-
-    //public BinaryPacket WritePacket(BinaryPacket packet)
-    //{
-
-    //}
+    public void Dispose()
+    {
+        if (_underlyingStream != null)
+        {
+            _underlyingStream.Dispose();
+        }
+    }
 }

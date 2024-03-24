@@ -21,6 +21,9 @@ public static class SourceGeneratorExt
     
     public static bool IsUserDefinedType(this TypeSyntax typeSyntax) => 
         typeSyntax is IdentifierNameSyntax or GenericNameSyntax or QualifiedNameSyntax;
+
+    public static bool IsEnumerableType(this TypeSyntax typeSyntax) =>
+        typeSyntax is ArrayTypeSyntax;
     
     
     public static IEnumerable<AttributeSyntax> GetAttributes(this SyntaxNode syntaxNode) => 
