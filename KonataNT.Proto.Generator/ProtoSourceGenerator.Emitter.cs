@@ -70,6 +70,7 @@ using KonataNT.Proto.Serialization;
     {
         sb.AppendLine("    public Span<byte> Serialize()");
         sb.AppendLine("    {");
+        sb.AppendLine("        var writer = new ProtoWriter();");
 
         foreach (var meta in context.List)
         {
@@ -80,7 +81,7 @@ using KonataNT.Proto.Serialization;
             }
             else
             {
-                // TODO: Proto writer
+                sb.AppendLine($"        writer.WriteHead(WireType.{meta.WireType}, {meta.Tag});");
             }
         }
         
@@ -92,9 +93,9 @@ using KonataNT.Proto.Serialization;
     {
         string className = syntax.Identifier.Text;
         
-        sb.AppendLine($"    public static {className} Deserialize(Span<byte> buffer)");
+        sb.AppendLine($"    public static {className} Deserialize(ReadOnlySpan<byte> buffer)");
         sb.AppendLine("    {");
-        sb.AppendLine("        return new();");
+        sb.AppendLine($"        return new {className}();");
         sb.AppendLine("    }");
     }
 }

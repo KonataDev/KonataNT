@@ -11,4 +11,14 @@ public class ProtoMemberMeta
     public TypeSyntax Type { get; set; } = TypeSyntaxFactory.Object;
     
     public bool IsNested { get; set; }
+    
+    public WireType WireType { get; set; }
+}
+
+public enum WireType
+{
+    VarInt = 0,
+    Fixed64 = 1,
+    Fixed32 = 5,
+    LengthDelimited = 2
 }

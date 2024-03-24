@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Core\Packet\" />
+      <Folder Include="Message\" />
     </ItemGroup>
 
 </Project>

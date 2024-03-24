@@ -49,4 +49,27 @@ internal class ContextVisitor(IGeneratorContext context) : CSharpSyntaxWalker
         }
         base.Visit(node);
     }
+    
+    private WireType GetPropertyVarIntType(TypeSyntax type)
+    {
+        if (type.IsUserDefinedType())
+        {
+            return WireType.LengthDelimited;
+        }
+        
+        return type.ToString() switch
+        {
+            "int" => WireType.VarInt,
+            "uint" => WireType.VarInt,
+            "long" => WireType.VarInt,
+            "ulong" => WireType.VarInt,
+            "short" => WireType.VarInt,
+            "ushort" => WireType.VarInt,
+            "byte" => WireType.VarInt,
+            "sbyte" => WireType.VarInt,
+            "string" => WireType.LengthDelimited,
+            "byte[]" => WireType.LengthDelimited,
+            _ => throw new InvalidOperationException("Invalid type for VarInt.")
+        };
+    }
 }
