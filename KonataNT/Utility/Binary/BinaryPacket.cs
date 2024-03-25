@@ -168,21 +168,21 @@ internal unsafe class BinaryPacket : IDisposable  // TODO: Reimplement im raw by
     {
         Span<byte> buffer = stackalloc byte[sizeof(ushort)];
         _ = _stream.Read(buffer);
-        return BinaryPrimitives.ReadUInt16LittleEndian(buffer);
+        return BinaryPrimitives.ReadUInt16BigEndian(buffer);
     }
 
     public uint ReadUint()
     {
         Span<byte> buffer = stackalloc byte[sizeof(uint)];
         _ = _stream.Read(buffer);
-        return BinaryPrimitives.ReadUInt32LittleEndian(buffer);
+        return BinaryPrimitives.ReadUInt32BigEndian(buffer);
     }
 
     public ulong ReadUlong()
     {
         Span<byte> buffer = stackalloc byte[sizeof(ulong)];
         _ = _stream.Read(buffer);
-        return BinaryPrimitives.ReadUInt64LittleEndian(buffer);
+        return BinaryPrimitives.ReadUInt64BigEndian(buffer);
     }
 
     public sbyte ReadSbyte()
@@ -196,21 +196,28 @@ internal unsafe class BinaryPacket : IDisposable  // TODO: Reimplement im raw by
     {
         Span<byte> buffer = stackalloc byte[sizeof(short)];
         _ = _stream.Read(buffer);
-        return BinaryPrimitives.ReadInt16LittleEndian(buffer);
+        return BinaryPrimitives.ReadInt16BigEndian(buffer);
     }
 
     public int ReadInt()
     {
         Span<byte> buffer = stackalloc byte[sizeof(int)];
         _ = _stream.Read(buffer);
-        return BinaryPrimitives.ReadInt32LittleEndian(buffer);
+        return BinaryPrimitives.ReadInt32BigEndian(buffer);
     }
 
     public long ReadLong()
     {
         Span<byte> buffer = stackalloc byte[sizeof(long)];
         _ = _stream.Read(buffer);
-        return BinaryPrimitives.ReadInt64LittleEndian(buffer);
+        return BinaryPrimitives.ReadInt64BigEndian(buffer);
+    }
+
+    public Span<byte> ReadBytes()
+    {
+        Span<byte> buffer = new byte[_stream.Length - _stream.Position];
+        _ = _stream.Read(buffer);
+        return buffer;
     }
 
     public Span<byte> ReadBytes(int count)

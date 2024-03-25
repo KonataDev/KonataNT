@@ -36,7 +36,7 @@ internal class TlvPacker(BotKeystore keystore, BotAppInfo appInfo)
         
         0x16 => new BinaryPacket()
             .WriteUint(0)
-            .WriteUint((uint)appInfo.SubAppId)
+            .WriteUint((uint)appInfo.AppId)
             .WriteUint((uint)appInfo.AppIdQrCode)
             .WriteBytes(keystore.Guid.AsSpan())
             .WriteString(appInfo.PackageName, Prefix.Uint16 | Prefix.LengthOnly)
@@ -68,13 +68,13 @@ internal class TlvPacker(BotKeystore keystore, BotAppInfo appInfo)
         0x66 => new BinaryPacket()
             .WriteInt(appInfo.PtOsVersion),
         
-        0xD2 => new BinaryPacket()
+        0xD1 => new BinaryPacket()
             .WriteBytes(new NTLoginInfo
             {
                 SystemInfo = new NTSystemInfo
                 {
                     Os = appInfo.Os,
-                    DeviceName = "Lagrange"
+                    DeviceName = "Lagrange-6078EE"
                 },
                 Type = [0x30, 0x01]
             }.Serialize()),

@@ -9,6 +9,10 @@ public class BotConfig
     public Protocols Protocol { get; set; }
     
     public ILogger? Logger { get; set; }
+    
+    public bool GetOptimumServer { get; set; }
+    
+    public bool UseIPv6Network { get; set; }
 }
 
 public enum Protocols

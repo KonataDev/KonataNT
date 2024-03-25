@@ -17,7 +17,9 @@ public class BotKeystore
     
     public uint Uin { get; set; }
     
-    public string Uid { get; set; }
+    public string Uid { get; set; } = string.Empty;
+
+    public byte[] QrSig { get; set; } = Array.Empty<byte>();
     
     public byte[]? A2 { get; set; }
     
@@ -25,7 +27,7 @@ public class BotKeystore
 
     public byte[] D2 { get; set; } = Array.Empty<byte>();
     
-    public byte[] D2Key { get; set; } = Array.Empty<byte>();
+    public byte[] D2Key { get; set; } = new byte[16];
     
     public byte[] Tgt { get; set; } = Array.Empty<byte>();
     
