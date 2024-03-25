@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KonataNT.Proto.Generator", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KonataNT.Proto.Test", "KonataNT.Proto.Test\KonataNT.Proto.Test.csproj", "{F08426EC-0D4E-4084-BE5C-7387704C8D17}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KonataNT.Test", "KonataNT.Test\KonataNT.Test.csproj", "{0B132267-886C-41DB-92B1-069E7F8B0B0A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{F08426EC-0D4E-4084-BE5C-7387704C8D17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F08426EC-0D4E-4084-BE5C-7387704C8D17}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F08426EC-0D4E-4084-BE5C-7387704C8D17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B132267-886C-41DB-92B1-069E7F8B0B0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B132267-886C-41DB-92B1-069E7F8B0B0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B132267-886C-41DB-92B1-069E7F8B0B0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B132267-886C-41DB-92B1-069E7F8B0B0A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
