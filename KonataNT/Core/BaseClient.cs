@@ -224,16 +224,51 @@ public class BaseClient
             RegisterVendorType = 0,
             RegType = 1,
         };
-        
-        var resp = await PacketHandler.SendPacket("trpc.qq_new_tech.status_svc.StatusService.Register", statusRegister.Serialize());
-        
-        
+
+        const string command = "trpc.qq_new_tech.status_svc.StatusService.Register";
+        var resp = await PacketHandler.SendPacket(command, statusRegister.Serialize());
     }
 
     #region Private Builders
 
+    private byte[] BuildKeyExchangePacket()
+    {
+        const string gcmCalc2Key = "e2733bf403149913cbf80c7a95168bd4ca6935ee53cd39764beebe2e007e3aee";
+        uint timestamp = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var shareKey = KeyStore.PrimeProvider.ShareKey;
+
+        var plain = new SsoKeyExchangePlain
+        {
+            Uin = KeyStore.Uin.ToString(),
+            Guid = KeyStore.Guid
+        }.Serialize();
+        
+        var hashPlain = new BinaryPacket()
+            .WriteBytes(KeyStore.PrimeProvider.GetPublicKey(false))
+            .WriteUint(1)
+            .WriteBytes(plain)
+            .WriteUint(0)
+            .WriteUint(timestamp);
+        
+        var hash = SHA256.HashData(hashPlain.ToArray());
+
+        var gcmClac1 = AesProvider.Encrypt(plain, shareKey);
+        var gcmClac2 = AesProvider.Encrypt(hash, gcmCalc2Key.UnHex());
+
+        return new SsoKeyExchange
+        {
+            PubKey = KeyStore.PrimeProvider.GetPublicKey(false),
+            Type = 1,
+            GcmCalc1 = gcmClac1,
+            Timestamp = timestamp,
+            GcmCalc2 = gcmClac2
+        }.Serialize();
+    }
+
     private byte[] BuildNTLoginPacket(byte[] credential)
     {
+        if (KeyStore.ExchangeKey is null || KeyStore.KeySign is null) throw new InvalidOperationException("Key is null");
+        
         var header = new SsoNTLoginHeader
         {
             Uin = new SsoNTLoginUin
@@ -258,13 +293,33 @@ public class BaseClient
                 Cookie = KeyStore.SessionCookie
             }
         };
+        
         var packet = new SsoNTLoginBase
         {
             Header = header,
-            Body = credential
+            Data = new SsoNTLoginData
+            {
+                Credential = credential
+            }
         };
         
-        return packet.Serialize();
+        if (KeyStore.Captcha is { Aid: not null, Ticket: not null, RandStr: not null })
+        {
+            packet.Data.Captcha = new SsoNTLoginCaptcha
+            {
+                Aid = KeyStore.Captcha.Aid,
+                Ticket = KeyStore.Captcha.Ticket,
+                RandStr = KeyStore.Captcha.RandStr
+            };
+        }
+
+        var encrypted = new SsoNTLoginEncryptedData
+        {
+            Sign = KeyStore.KeySign,
+            GcmCalc = AesProvider.Encrypt(packet.Serialize(), KeyStore.ExchangeKey),
+            Type = 1
+        };
+        return encrypted.Serialize();
     }
 
     private BinaryPacket BuildCode2dPacket(int cmd, byte[] buffer)

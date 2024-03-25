@@ -9,5 +9,5 @@ internal partial class SsoNTLoginBase
 {
     [ProtoMember(1)] public SsoNTLoginHeader Header { get; set; }
     
-    [ProtoMember(2)] public byte[] Body { get; set; }
+    [ProtoMember(2)] public SsoNTLoginData Data { get; set; }
 }

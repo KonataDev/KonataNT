@@ -43,13 +43,15 @@ public class BotKeystore
 
     public string? SessionCookie { get; set; }
     
+    internal CaptchaInfo? Captcha { get; set; }
+    
     internal byte[]? QrSign { get; set; }
     
     internal byte[]? UnusualSign { get; set; }
     
     internal byte[]? ExchangeKey { get; set; }
     
-    internal string? KeySign { get; set; }
+    internal byte[]? KeySign { get; set; }
     
 
     internal EcdhImpl PrimeProvider { get; } = new(EcdhImpl.CryptMethod.Prime256V1, false);
@@ -65,4 +67,16 @@ public class BotInfo
     public byte Age { get; set; }
     
     public byte Gender { get; set; }
+}
+
+[Serializable]
+internal class CaptchaInfo
+{
+    public string? Url { get; set; }
+    
+    public string? Ticket { get; set; }
+    
+    public string? RandStr { get; set; }
+    
+    public string? Aid { get; set; }
 }
