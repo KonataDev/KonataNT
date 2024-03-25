@@ -17,7 +17,7 @@ public class BotKeystore
     
     public uint Uin { get; set; }
     
-    public string Uid { get; set; } = string.Empty;
+    public string? Uid { get; set; }
     
     public byte[]? A2 { get; set; }
     
@@ -35,7 +35,7 @@ public class BotKeystore
     
     public byte[] Guid { get; set; } = System.Guid.NewGuid().ToByteArray();
     
-    public string Name { get; set; } = "Lagrange";
+    public string Name { get; set; } = "Lagrange-vNEXT";
     
     public byte[] PasswordMd5 { get; set; } = Array.Empty<byte>();
     

@@ -185,52 +185,64 @@ public class BaseClient
 
     #region Private Builders
 
-    private BinaryPacket BuildCode2dPacket(int cmd, byte[] buffer) => new BinaryPacket()
-        .WriteByte(0)
-        .WriteUshort((ushort)(53 + buffer.Length))
-        .WriteUint((uint)AppInfo.AppId)
-        .WriteUint(0x72)
-        .WriteBytes(new byte[3])
-        .WriteUint((uint)DateTimeOffset.Now.ToUnixTimeSeconds())
-        .WriteByte(0x02)
+    private BinaryPacket BuildCode2dPacket(int cmd, byte[] buffer)
+    {
+        var packet = new BinaryPacket().WriteByte(0); // known const
         
-        .WriteUshort((ushort)(49 + buffer.Length)) // actually this is manually calculated, real implementation is seen at MiraiGo
-        .WriteUshort((ushort)cmd)
-        .WriteBytes(new byte[21].AsSpan())
-        .WriteByte(3)
-        .WriteUint(50)
-        .WriteBytes(new byte[14].AsSpan())
-        .WriteUint((uint)AppInfo.AppId)
-        .WriteBytes(buffer);
+        packet.Barrier(w =>
+        {
+            w.WriteUint((uint)AppInfo.AppId)
+                .WriteUint(0x00000072) // const
+                .WriteUshort(0) // const 0
+                .WriteByte(0) // const 0
+                .WriteUint((uint)DateTimeOffset.Now.ToUnixTimeSeconds()) // length actually starts here
+                .WriteByte(0x02) // header for packet, counted into length of next barrier manually
+                .Barrier(w => w
+                    .WriteUshort((ushort)cmd)
+                    .WriteUlong(0) // const 0
+                    .WriteUint(0) // const 0
+                    .WriteUlong(0) // const 0 
+                    .WriteUshort(3) // const 3
+                    .WriteUshort(0) // const 0
+                    .WriteUshort(50) // unknown const
+                    .WriteUlong(0)
+                    .WriteUint(0)
+                    .WriteUshort(0)
+                    .WriteUint((uint)AppInfo.AppId)
+                    .WriteBytes(buffer.AsSpan()), Prefix.Uint16 | Prefix.WithPrefix, 1); // addition is the packet start counted in
+
+        }, Prefix.Uint16 | Prefix.WithPrefix, -13);
+
+        return packet;
+    }
 
     private BinaryPacket BuildWtLoginPacket(string cmd, byte[] buffer)
     {
         var encrypted = TeaProvider.Encrypt(buffer.AsSpan(), KeyStore.ScepProvider.ShareKey.AsSpan());
         
-        var writer = new BinaryPacket()
-            .WriteUshort(8001)
-            .WriteUshort((ushort)(cmd == "wtlogin.login" ? 2064 : 2066))
-            .WriteUshort(0)
-            .WriteUint(KeyStore.Uin)
-            .WriteByte(3)  // extVer
-            .WriteByte(135)  // cmdVer
-            .WriteUint(0)  // unknown const 0
-            .WriteByte(19)  // pubId
-            .WriteUshort(0)  // insId
-            .WriteUshort(AppInfo.AppClientVersion)  // cliType
-            .WriteUint(0)  // retryTime
-            .WriteByte(1)  // const
-            .WriteByte(1)  // const
-            .WriteBytes(new byte[16])
-            .WriteUshort(0x102)
-            .WriteBytes(KeyStore.ScepProvider.GetPublicKey(), Prefix.Uint16 | Prefix.LengthOnly)
-            .WriteBytes(encrypted.AsSpan())
-            .WriteByte(3);
-        
-        return new BinaryPacket()
-            .WriteByte(2)
-            .WriteUshort((ushort)(writer.Length + 2 + 1))
-            .WritePacket(writer);
+        var packet = new BinaryPacket()
+            .WriteByte(2) // packet start
+            .Barrier(w => w
+                .WriteUshort(8001) // ver
+                .WriteUshort((ushort)(cmd == "wtlogin.trans_emp" ? 2066 : 2064)) // cmd: wtlogin.trans_emp: 2066, wtlogin.login: 2064
+                .WriteUshort(0) // unique wtLoginSequence for wtlogin packets only, should be stored in KeyStore
+                .WriteUint(KeyStore.Uin) // uin, 0 for wtlogin.trans_emp
+                .WriteByte(3) // extVer
+                .WriteByte(135) // cmdVer
+                .WriteUint(0) // actually unknown const 0
+                .WriteByte(19) // pubId
+                .WriteUshort(0) // insId
+                .WriteUshort(AppInfo.AppClientVersion) // cliType
+                .WriteUint(0) // retryTime
+                .WriteByte(1) // const
+                .WriteByte(1) // const
+                .WriteBytes(new byte[16].AsSpan()) // randKey
+                .WriteUshort(0x102) // unknown const, 腾讯你妈妈死啦
+                .WriteBytes(KeyStore.ScepProvider.GetPublicKey(), Prefix.Uint16 | Prefix.LengthOnly) // pubKey
+                .WriteBytes(encrypted.AsSpan())
+                .WriteByte(3), Prefix.Uint16 | Prefix.WithPrefix, 1); // 0x03 is the packet end
+
+        return packet;
     }
     #endregion
 }
