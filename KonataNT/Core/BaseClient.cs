@@ -108,10 +108,12 @@ public class BaseClient
         
         if (state == QrCodeState.Confirmed)
         {
+            reader.Skip(12);
+            
             var tlvBody = new TlvUnPacker(reader);
-            var tgtgtKey = tlvBody.TlvMap[0x1E];
-            var tempPwd = tlvBody.TlvMap[0x18];
-            var noPicSig = tlvBody.TlvMap[0x19];
+            KeyStore.TgtgtKey = tlvBody.TlvMap[0x1E];
+            KeyStore.A2 = tlvBody.TlvMap[0x18];
+            KeyStore.NoPicSig = tlvBody.TlvMap[0x19];
         }
         
         return state;
@@ -119,7 +121,16 @@ public class BaseClient
 
     public async Task QrCodeLogin()
     {
+        var tlv = new TlvPacker(KeyStore, AppInfo);
+        var body = new BinaryPacket()
+            .WriteUshort(0x09) // wtlogin_command
+            .WritePacket(tlv.PackUp([0x106, 0x144, 0x116, 0x142, 0x145, 0x018, 0x141, 0x177, 0x191, 0x100, 0x107, 0x318, 0x16A, 0x166, 0x521], false));
         
+        var login = BuildWtLoginPacket("wtlogin.login", body.ToArray());
+        var response = await PacketHandler.SendPacket("wtlogin.login", login.ToArray());
+        
+        var decrypted = TeaProvider.Decrypt(response.AsSpan()[16..^1], KeyStore.ScepProvider.ShareKey);
+        var reader = new BinaryPacket(decrypted);
     }
 
     public async Task Login(Memory<byte> credentials, CredentialType type)

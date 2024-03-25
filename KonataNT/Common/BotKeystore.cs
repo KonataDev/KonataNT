@@ -29,7 +29,13 @@ public class BotKeystore
     
     public byte[] Tgt { get; set; } = Array.Empty<byte>();
     
+    public byte[] NoPicSig { get; set; } = Array.Empty<byte>();
+    
+    public byte[] TgtgtKey { get; set; } = Array.Empty<byte>();
+    
     public byte[] Guid { get; set; } = System.Guid.NewGuid().ToByteArray();
+    
+    public string Name { get; set; } = "Lagrange";
     
     public byte[] PasswordMd5 { get; set; } = Array.Empty<byte>();
     
