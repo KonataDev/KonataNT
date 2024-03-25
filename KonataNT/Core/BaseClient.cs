@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using KonataNT.Common;
 using KonataNT.Core.Packet;
+using KonataNT.Core.Packet.Login;
 using KonataNT.Core.Packet.Service;
 using KonataNT.Events;
 using KonataNT.Utility;
@@ -163,6 +164,16 @@ public class BaseClient
             KeyStore.D2 = collection.TlvMap[0x143];
             KeyStore.D2Key = collection.TlvMap[0x305];
             
+            var uidRaw = collection.TlvMap[0x543];
+            var t11A = collection.TlvMap[0x11a];
+
+            KeyStore.Info = new BotInfo
+            {
+                Name = Encoding.UTF8.GetString(uidRaw[5..]),
+                Age = t11A[2],
+                Gender = t11A[3]
+            };
+            
             await BotOnline();
             Logger.LogInformation(Tag, "Login Success!");
         }
@@ -215,9 +226,46 @@ public class BaseClient
         };
         
         var resp = await PacketHandler.SendPacket("trpc.qq_new_tech.status_svc.StatusService.Register", statusRegister.Serialize());
+        
+        
     }
 
     #region Private Builders
+
+    private byte[] BuildNTLoginPacket(byte[] credential)
+    {
+        var header = new SsoNTLoginHeader
+        {
+            Uin = new SsoNTLoginUin
+            {
+                Uid = KeyStore.Uid
+            },
+            System = new SsoNTLoginSystem
+            {
+                Os = AppInfo.Os,
+                DeviceName = KeyStore.Name,
+                Type = 7,
+                Guid = KeyStore.Guid
+            },
+            Version = new SsoNTLoginVersion
+            {
+                KernelVersion = "",
+                AppId = AppInfo.AppId,
+                PackageName = AppInfo.PackageName
+            },
+            Cookie = new SsoNTLoginCookie
+            {
+                Cookie = KeyStore.SessionCookie
+            }
+        };
+        var packet = new SsoNTLoginBase
+        {
+            Header = header,
+            Body = credential
+        };
+        
+        return packet.Serialize();
+    }
 
     private BinaryPacket BuildCode2dPacket(int cmd, byte[] buffer)
     {

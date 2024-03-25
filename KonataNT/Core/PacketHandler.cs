@@ -102,13 +102,17 @@ internal class PacketHandler : ClientListener
         {
             Trace = StringGen.GenerateTrace(),
             Uid = _client.KeyStore.Uid,
-            Sign = new Sign
+        };
+        
+        if (ver != null && token != null && sign != null)
+        {
+            reserve.Sign = new Sign
             {
                 Signature = sign,
                 Token = token,
-                Extra = ver,
-            },
-        };
+                Extra = ver
+            };
+        }
 
         if (protocol == 13)
         {

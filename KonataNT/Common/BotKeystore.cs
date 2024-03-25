@@ -40,6 +40,8 @@ public class BotKeystore
     public byte[] PasswordMd5 { get; set; } = Array.Empty<byte>();
     
     public BotInfo Info { get; set; } = new();
+
+    public string? SessionCookie { get; set; }
     
     internal byte[]? QrSign { get; set; }
     

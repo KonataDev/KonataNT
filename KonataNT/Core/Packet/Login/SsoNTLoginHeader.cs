@@ -13,5 +13,5 @@ internal partial class SsoNTLoginHeader
     
     [ProtoMember(4)] public SsoNTLoginError? Error { get; set; }
     
-    // [ProtoMember(5)] public SsoNTLoginCookie? Cookie { get; set; }
+    [ProtoMember(5)] public SsoNTLoginCookie? Cookie { get; set; }
 }
