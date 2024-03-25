@@ -96,9 +96,15 @@ public class BaseClient
         
         var decrypted = TeaProvider.Decrypt(response.AsSpan()[16..^1], KeyStore.ScepProvider.ShareKey);
         var reader = new BinaryPacket(decrypted);
-        reader.Skip(12);
         
+        uint length = reader.ReadUint();
+        reader.Skip(4);
+        ushort cmd = reader.ReadUshort();
+        reader.Skip(40);
+        uint appId = reader.ReadUint();
         var state = (QrCodeState)reader.ReadByte();
+        
+        Logger.LogInformation(Tag, $"QR Code State: {state}");
         
         if (state == QrCodeState.Confirmed)
         {

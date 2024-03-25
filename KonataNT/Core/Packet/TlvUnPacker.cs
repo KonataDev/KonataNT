@@ -10,7 +10,7 @@ internal class TlvUnPacker
     {
         short tlvCount = reader.ReadShort();
 
-        while (reader.Remaining > 0)
+        for (int i = 0; i < tlvCount; i++)
         {
             ushort tag = reader.ReadUshort();
             ushort length = reader.ReadUshort();

@@ -10,7 +10,6 @@
 
     <ItemGroup>
       <Folder Include="Core\Packet\Action\" />
-      <Folder Include="Message\" />
     </ItemGroup>
 
     <ItemGroup>
