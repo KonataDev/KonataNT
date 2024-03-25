@@ -8,6 +8,7 @@ using KonataNT.Utility.Binary;
 using KonataNT.Utility.Crypto;
 using KonataNT.Utility.Generator;
 using KonataNT.Utility.Network;
+using KonataNT.Utility.Sign;
 
 namespace KonataNT.Core;
 
@@ -26,6 +27,8 @@ internal class PacketHandler : ClientListener
     private int _sequence = Random.Shared.Next(5000000, 9900000);
 
     private readonly ClientListener _tcpClient;
+    
+    private readonly Signer _signer = new();
     
     public Uri? ServerUri { get; set; }
 
@@ -92,11 +95,19 @@ internal class PacketHandler : ClientListener
     {
         int sequence = Interlocked.Increment(ref _sequence);
         var sso = new BinaryPacket();
+
+        var sign = _signer.Sign(command, (uint)sequence, payload, out var ver, out var token);
+        
         var reserve = new NTDeviceSign
         {
             Trace = StringGen.GenerateTrace(),
             Uid = _client.KeyStore.Uid,
-            Sign = new Sign(),
+            Sign = new Sign
+            {
+                Signature = sign,
+                Token = token,
+                Extra = ver,
+            },
         };
 
         if (protocol == 13)
