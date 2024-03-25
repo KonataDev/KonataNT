@@ -1,6 +1,8 @@
+using System.Security.Cryptography;
 using System.Text;
 using KonataNT.Common;
 using KonataNT.Core.Packet;
+using KonataNT.Core.Packet.Service;
 using KonataNT.Events;
 using KonataNT.Utility;
 using KonataNT.Utility.Binary;
@@ -19,15 +21,16 @@ public class BaseClient
 
     public uint BotUin => KeyStore.Uin;
     
-    internal BotKeystore KeyStore { get; init; }
+    public EventEmitter EventEmitter { get; }
     
-    internal BotAppInfo AppInfo { get; init; }
+    public BotKeystore KeyStore { get; }
     
-    internal BotConfig Config { get; init; }
+    internal BotAppInfo AppInfo { get; }
     
-    public EventEmitter EventEmitter { get; init; }
+    internal BotConfig Config { get; }
     
-    internal PacketHandler PacketHandler { get; init; }
+    
+    internal PacketHandler PacketHandler { get; }
     
     internal ILogger Logger { get; init; }
     
@@ -105,7 +108,7 @@ public class BaseClient
         uint appId = reader.ReadUint();
         var state = (QrCodeState)reader.ReadByte();
         
-        Logger.LogInformation(Tag, $"QR Code State: {state} | Uin: {KeyStore.Uin}");
+        Logger.LogInformation(Tag, $"QR Code State: {state}");
         
         if (state == QrCodeState.Confirmed)
         {
@@ -153,6 +156,15 @@ public class BaseClient
         if (tlvResp.TlvMap.TryGetValue(0x119, out var t119))
         { 
             t119 = TeaProvider.Decrypt(t119, KeyStore.TgtgtKey);
+            var collection = new TlvUnPacker(new BinaryPacket(t119));
+
+            KeyStore.A2 = collection.TlvMap[0x106];
+            KeyStore.Tgt = collection.TlvMap[0x10a];
+            KeyStore.D2 = collection.TlvMap[0x143];
+            KeyStore.D2Key = collection.TlvMap[0x305];
+            
+            await BotOnline();
+            Logger.LogInformation(Tag, "Login Success!");
         }
 
         return true;
@@ -180,9 +192,29 @@ public class BaseClient
     /// <summary>
     /// Called when Bot is online through login, or reconnected / session resumed.
     /// </summary>
-    public async Task BotOnline()
+    private async Task BotOnline()
     {
+        var statusRegister = new StatusRegister
+        {
+            Guid = KeyStore.Guid.Hex(),
+            Type = 0,
+            CurrentVersion = AppInfo.CurrentVersion,
+            Field4 = 0,
+            LocaleId = 2052,
+            Online = new OnlineOsInfo
+            {
+                User = KeyStore.Name,
+                Os = AppInfo.Kernel,
+                OsVer = "",
+                VendorName = "",
+                OsLower = AppInfo.VendorOs,
+            },
+            SetMute = 0,
+            RegisterVendorType = 0,
+            RegType = 1,
+        };
         
+        var resp = await PacketHandler.SendPacket("trpc.qq_new_tech.status_svc.StatusService.Register", statusRegister.Serialize());
     }
 
     #region Private Builders
