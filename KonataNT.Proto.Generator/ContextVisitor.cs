@@ -48,7 +48,8 @@ internal class ContextVisitor(IGeneratorContext context) : CSharpSyntaxWalker
                     IsNested = property.Type.IsUserDefinedType(),
                     WireType = GetPropertyVarIntType(array.ElementType),
                     IsNullable = property.Type.IsNullableType(),
-                    IsEnumerable = true
+                    IsEnumerable = true,
+                    IsValueType = property.Type.IsValueType()
                 };
             }
             else
@@ -61,6 +62,7 @@ internal class ContextVisitor(IGeneratorContext context) : CSharpSyntaxWalker
                     IsNested = property.Type.IsUserDefinedType(),
                     WireType = GetPropertyVarIntType(property.Type),
                     IsNullable = property.Type.IsNullableType(),
+                    IsValueType = property.Type.IsValueType()
                 };
             }
             

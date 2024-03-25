@@ -32,6 +32,12 @@ public static class SourceGeneratorExt
     
     public static bool IsNullableType(this TypeSyntax typeSyntax) =>
         typeSyntax is NullableTypeSyntax;
+
+    public static bool IsValueType(this TypeSyntax typeSyntax) =>
+        typeSyntax is
+            PredefinedTypeSyntax { Keyword.ValueText: not "string" } or
+            NullableTypeSyntax { ElementType: PredefinedTypeSyntax { Keyword.ValueText: not "string" } };
+       
     
     
     public static IEnumerable<AttributeSyntax> GetAttributes(this SyntaxNode syntaxNode) => 

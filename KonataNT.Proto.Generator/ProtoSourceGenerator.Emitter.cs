@@ -115,6 +115,7 @@ using KonataNT.Proto.Serialization;
         }
         else
         {
+            
             sb.AppendLine($"{i}        writer.WriteHead(WireType.{meta.WireType}, {meta.Tag});");
 
             string func = meta.WireType switch
@@ -123,7 +124,8 @@ using KonataNT.Proto.Serialization;
                 WireType.LengthDelimited => "WriteLengthDelimited",
                 _ => throw new InvalidOperationException()
             };
-                
+
+            if (meta is { IsValueType: true, IsNullable: true }) name += ".Value";
             sb.AppendLine($"{i}        writer.{func}({name});");
         }
         

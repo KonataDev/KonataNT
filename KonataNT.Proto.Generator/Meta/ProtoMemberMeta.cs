@@ -16,6 +16,8 @@ public class ProtoMemberMeta
     
     public bool IsNullable { get; set; }
     
+    public bool IsValueType { get; set; }
+    
     public WireType WireType { get; set; }
 }
 
