@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -10,7 +9,7 @@ internal class Signer : SignProvider
 {
     private readonly HttpClient _client = new();
 
-    private const string Url = "";
+    private const string Url = "https://sign.libfekit.so/api/sign";
 
     private readonly Timer _timer;
 

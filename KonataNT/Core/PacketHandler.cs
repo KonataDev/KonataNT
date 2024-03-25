@@ -154,7 +154,7 @@ internal class PacketHandler : ClientListener
             .WriteBytes(encrypted), Prefix.Uint32 | Prefix.WithPrefix);
         
         _client.Logger.LogDebug(Tag, $"Sending SSOFrame: {sequence} | {command}");
-        bool success = await Send(service.ToArray());
+        await Send(service.ToArray());
         
         var tcs = new TaskCompletionSource<byte[]>();
         _pendingRequests.TryAdd(sequence, tcs);

@@ -2,6 +2,7 @@ using System.Text;
 using KonataNT.Common;
 using KonataNT.Core.Packet;
 using KonataNT.Events;
+using KonataNT.Utility;
 using KonataNT.Utility.Binary;
 using KonataNT.Utility.Crypto;
 
@@ -24,7 +25,7 @@ public class BaseClient
     
     internal BotConfig Config { get; init; }
     
-    internal EventEmitter EventEmitter { get; init; }
+    public EventEmitter EventEmitter { get; init; }
     
     internal PacketHandler PacketHandler { get; init; }
     
@@ -119,7 +120,7 @@ public class BaseClient
         return state;
     }
 
-    public async Task QrCodeLogin()
+    public async Task<bool> QrCodeLogin()
     {
         var tlv = new TlvPacker(KeyStore, AppInfo);
         var body = new BinaryPacket()
@@ -131,6 +132,28 @@ public class BaseClient
         
         var decrypted = TeaProvider.Decrypt(response.AsSpan()[16..^1], KeyStore.ScepProvider.ShareKey);
         var reader = new BinaryPacket(decrypted);
+        
+        reader.Skip(2);
+        ushort cmd = reader.ReadByte();
+        var tlvResp = new TlvUnPacker(reader);
+
+        if (tlvResp.TlvMap.TryGetValue(0x146, out var errorMsg) || tlvResp.TlvMap.TryGetValue(0x149, out errorMsg))
+        {            
+            var packet = new BinaryPacket(errorMsg);
+            packet.Skip(2);
+            string title = packet.ReadString(Prefix.Uint16 | Prefix.WithPrefix);
+            string content = packet.ReadString(Prefix.Uint16 | Prefix.WithPrefix);
+            
+            Logger.LogError(Tag, $"Failed to login: {title} | {content}");
+            return false;
+        }
+
+        if (tlvResp.TlvMap.TryGetValue(0x119, out var t119))
+        { 
+            t119 = TeaProvider.Decrypt(t119, KeyStore.TgtgtKey);
+        }
+
+        return true;
     }
 
     public async Task Login(Memory<byte> credentials, CredentialType type)
@@ -183,24 +206,22 @@ public class BaseClient
     private BinaryPacket BuildWtLoginPacket(string cmd, byte[] buffer)
     {
         var encrypted = TeaProvider.Encrypt(buffer.AsSpan(), KeyStore.ScepProvider.ShareKey.AsSpan());
-        var random = new byte[16];
-        Random.Shared.NextBytes(random);
         
         var writer = new BinaryPacket()
             .WriteUshort(8001)
             .WriteUshort((ushort)(cmd == "wtlogin.login" ? 2064 : 2066))
             .WriteUshort(0)
             .WriteUint(KeyStore.Uin)
-            .WriteByte(3)
-            .WriteByte(135)
-            .WriteUint(0)
-            .WriteByte(19)
-            .WriteUshort(0)
-            .WriteUshort(AppInfo.AppClientVersion)
-            .WriteUint(0)
-            .WriteByte(1)
-            .WriteByte(1)
-            .WriteBytes(random.AsSpan())
+            .WriteByte(3)  // extVer
+            .WriteByte(135)  // cmdVer
+            .WriteUint(0)  // unknown const 0
+            .WriteByte(19)  // pubId
+            .WriteUshort(0)  // insId
+            .WriteUshort(AppInfo.AppClientVersion)  // cliType
+            .WriteUint(0)  // retryTime
+            .WriteByte(1)  // const
+            .WriteByte(1)  // const
+            .WriteBytes(new byte[16])
             .WriteUshort(0x102)
             .WriteBytes(KeyStore.ScepProvider.GetPublicKey(), Prefix.Uint16 | Prefix.LengthOnly)
             .WriteBytes(encrypted.AsSpan())

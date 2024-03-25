@@ -1,6 +1,7 @@
 using System.Text;
 using KonataNT.Common;
 using KonataNT.Core.Packet.Login;
+using KonataNT.Utility;
 using KonataNT.Utility.Binary;
 using KonataNT.Utility.Crypto;
 
@@ -33,12 +34,12 @@ internal class TlvPacker(BotKeystore keystore, BotAppInfo appInfo)
             .WriteUint(5)  // SsoVersion
             .WriteUint(0)  // AppId
             .WriteUint(8001)  // AppClientVersion
-            .WriteUint(0)  // Uin
+            .WriteUint(keystore.Uin)  // Uin
             .WriteUshort(0)  // Field0
             .WriteUshort(0),  // Field1
         
         0x100 => new BinaryPacket()
-            .WriteUshort(1)  // DbBufVersion
+            .WriteUshort(0)  // DbBufVersion
             .WriteUint(5)  // SsoVersion
             .WriteUint((uint)appInfo.AppId)
             .WriteUint((uint)appInfo.SubAppId)
@@ -116,6 +117,8 @@ internal class TlvPacker(BotKeystore keystore, BotAppInfo appInfo)
         0x521 => new BinaryPacket()
             .WriteUint(0x13)  // ProductType
             .WriteString("basicim", Prefix.Uint16 | Prefix.LengthOnly),  // ProductDesc
+        
+_ => throw new InvalidDataException()
     };
     
     private BinaryPacket GenerateTransTlvBody(ushort tag) => tag switch
@@ -163,7 +166,7 @@ internal class TlvPacker(BotKeystore keystore, BotAppInfo appInfo)
                 SystemInfo = new NTSystemInfo
                 {
                     Os = appInfo.Os,
-                    DeviceName = "Lagrange-6078EE"
+                    DeviceName = keystore.Name
                 },
                 Type = [0x30, 0x01]
             }.Serialize()),
