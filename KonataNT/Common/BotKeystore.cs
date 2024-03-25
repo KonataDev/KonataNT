@@ -18,8 +18,6 @@ public class BotKeystore
     public uint Uin { get; set; }
     
     public string Uid { get; set; } = string.Empty;
-
-    public byte[] QrSig { get; set; } = Array.Empty<byte>();
     
     public byte[]? A2 { get; set; }
     
@@ -36,6 +34,8 @@ public class BotKeystore
     public byte[] PasswordMd5 { get; set; } = Array.Empty<byte>();
     
     public BotInfo Info { get; set; } = new();
+    
+    internal byte[]? QrSign { get; set; }
     
     internal byte[]? UnusualSign { get; set; }
     

@@ -2,7 +2,6 @@ using System.Text;
 using KonataNT.Common;
 using KonataNT.Core.Packet;
 using KonataNT.Events;
-using KonataNT.Utility;
 using KonataNT.Utility.Binary;
 using KonataNT.Utility.Crypto;
 
@@ -56,7 +55,7 @@ public class BaseClient
         var login = BuildWtLoginPacket("wtlogin.trans_emp", code2d.ToArray());
         var response = await PacketHandler.SendPacket("wtlogin.trans_emp", login.ToArray());
         
-        var decrypted = TeaProvider.Decrypt(response[16..^1], KeyStore.ScepProvider.ShareKey);
+        var decrypted = TeaProvider.Decrypt(response.AsSpan()[16..^1], KeyStore.ScepProvider.ShareKey);
         var reader = new BinaryPacket(decrypted);
         
         reader.Skip(54);
@@ -66,14 +65,52 @@ public class BaseClient
             Logger.LogError(Tag, $"Failed to fetch QR code, retCode: {retCode}");
             return null;
         }
-        KeyStore.QrSig = reader.ReadBytes(Prefix.Uint16 | Prefix.LengthOnly).ToArray();
+        KeyStore.QrSign = reader.ReadBytes(Prefix.Uint16 | Prefix.LengthOnly).ToArray();
         
         var tlvBody = new TlvUnPacker(reader);
-        var url = Encoding.UTF8.GetString(tlvBody.TlvMap[0x1b]);
-        var image = tlvBody.TlvMap[0x1d];
+        var proto = tlvBody.TlvMap[0xD1];
+        var image = tlvBody.TlvMap[0x17];
+
+        string url = "";
         return (url, image);
     }
-    
+
+    public async Task<QrCodeState> QueryQrCodeState()
+    {
+        if (KeyStore.QrSign is null)
+        {
+            Logger.LogFatal(Tag, "Please fetch QR code first.");
+            return QrCodeState.Invalid;
+        }
+
+        var body = new BinaryPacket()
+            .WriteBytes(KeyStore.QrSign, Prefix.Uint16 | Prefix.LengthOnly)
+            .WriteUlong(0) // const 0
+            .WriteUint(0) // const 0
+            .WriteByte(0) // const 0
+            .WriteByte(0x03);         // packet end
+        
+        var code2d = BuildCode2dPacket(0x12, body.ToArray());
+        var login = BuildWtLoginPacket("wtlogin.trans_emp", code2d.ToArray());
+        var response = await PacketHandler.SendPacket("wtlogin.trans_emp", login.ToArray());
+        
+        var decrypted = TeaProvider.Decrypt(response.AsSpan()[16..^1], KeyStore.ScepProvider.ShareKey);
+        var reader = new BinaryPacket(decrypted);
+        reader.Skip(12);
+        
+        var state = (QrCodeState)reader.ReadByte();
+        
+        if (state == QrCodeState.Confirmed)
+        {
+            var tlvBody = new TlvUnPacker(reader);
+            var tgtgtKey = tlvBody.TlvMap[0x1E];
+            var tempPwd = tlvBody.TlvMap[0x18];
+            var noPicSig = tlvBody.TlvMap[0x19];
+        }
+        
+        return state;
+    }
+
     public async Task QrCodeLogin()
     {
         
@@ -167,4 +204,17 @@ public enum CredentialType
     PasswordLogin,
     UnusualPasswordLogin,
     NewDeviceLogin,
+}
+
+/// <summary>
+/// State of QRCode Scanning
+/// </summary>
+public enum QrCodeState : byte
+{
+    Invalid = 0xFF,
+    Confirmed = 0,
+    CodeExpired = 17,
+    WaitingForScan = 48,
+    WaitingForConfirm = 53,
+    Canceled = 54,
 }
