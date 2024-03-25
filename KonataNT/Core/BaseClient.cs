@@ -105,11 +105,13 @@ public class BaseClient
         uint appId = reader.ReadUint();
         var state = (QrCodeState)reader.ReadByte();
         
-        Logger.LogInformation(Tag, $"QR Code State: {state}");
+        Logger.LogInformation(Tag, $"QR Code State: {state} | Uin: {KeyStore.Uin}");
         
         if (state == QrCodeState.Confirmed)
         {
-            reader.Skip(12);
+            reader.Skip(4);
+            KeyStore.Uin = reader.ReadUint();
+            reader.Skip(4);
             
             var tlvBody = new TlvUnPacker(reader);
             KeyStore.TgtgtKey = tlvBody.TlvMap[0x1E];
