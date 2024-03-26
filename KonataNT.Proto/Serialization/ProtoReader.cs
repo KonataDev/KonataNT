@@ -1,107 +1,127 @@
-using KonataNT.Proto.Utility;
+using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using KonataNT.Proto.Exceptions;
 
 namespace KonataNT.Proto.Serialization;
 
-internal class ProtoReader(Stream stream)
+public ref struct ProtoReader
 {
-    private uint ReadProtoUInt32()
+    private readonly ReadOnlySpan<byte> _span;
+
+    private uint _position;
+
+    private readonly ref byte First => ref MemoryMarshal.GetReference(_span);
+
+    private readonly uint Length => (uint)_span.Length;
+
+    public ProtoReader(byte[] buffer) : this(buffer, 0, buffer.Length)
     {
-        uint value = 0;
-        int count = 0;
-        byte b;
+
+    }
+
+    public ProtoReader(byte[] buffer, int offset, int length) : this(buffer.AsSpan(offset, length))
+    {
         
+    }
+
+    public ProtoReader(ReadOnlySpan<byte> span)
+    {
+        _span = span;
+        _position = 0;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public unsafe T ReadVarInt<T>() where T : unmanaged, INumber<T>, IBitwiseOperators<T, T, T>
+    {
+        nuint position = _position;
+        if (Length - (uint)position >= (uint)(sizeof(T) + 1 + (sizeof(T) >> 3)))
+        {
+            ref byte ptr = ref First;
+            T value = T.CreateTruncating(Unsafe.Add(ref ptr, position));
+            if (value < T.CreateTruncating(0x80u))
+            {
+                position = (uint)position + 1;
+                goto succeeded;
+            }
+            if (sizeof(T) == 1)
+            {
+                position = (uint)position + 2;
+                goto succeeded;
+            }
+            value &= T.CreateTruncating(0x7Fu);
+            int shift = 7;
+            do
+            {
+                position++;
+                byte b = Unsafe.Add(ref ptr, position);
+                value += T.CreateTruncating((ulong)(uint)(b & 0x7F) << shift);
+                if (b < 0x80)
+                {
+                    goto succeeded;
+                }
+                shift += 7;
+            }
+            while (shift < (sizeof(T) << 3));
+            ThrowMalformedMessage();
+        succeeded:
+            _position = (uint)position;
+            return value;
+        }
+        return ReadVarIntSlowPath<T>();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private unsafe T ReadVarIntSlowPath<T>() where T : unmanaged, INumber<T>
+    {
+        int shift = 0;
+        T result = T.Zero;
         do
         {
-            if (stream.IsAvailable(1))
+            byte b = ReadRawInteger<byte>();
+            result += T.CreateTruncating((ulong)((uint)b & 0x7F) << shift);
+            if (b < 0x80)
             {
-                b = (byte)stream.ReadByte();
-                value |= (b & 0b01111111u) << (count * 7);
-                ++count;
+                return result;
             }
-            else
-            {
-                throw new Exception();
-            }
+            shift += 7;
         }
-        while ((b & 0b10000000) > 0);
-
-        return value;
+        while (shift < sizeof(T) << 3);
+        ThrowMalformedMessage();
+        return result;
     }
-    
-    private ulong ReadProtoUInt64()
+
+    public T ReadRawInteger<T>() where T : unmanaged, INumber<T>
     {
-        ulong value = 0;
-        int count = 0;
-        byte b;
-        
-        do
+        ref T ptr = ref Unsafe.As<byte, T>(ref First);
+        uint position = _position;
+        if (position == Length)
         {
-            if (stream.IsAvailable(1))
-            {
-                b = (byte)stream.ReadByte();
-                value |= (b & 0b01111111u) << (count * 7);
-                ++count;
-            }
-            else
-            {
-                throw new Exception();
-            }
+            ThrowMalformedMessage();
         }
-        while ((b & 0b10000000) > 0);
-
-        return value;
+        return ReadRawIntegerUnchecked(ref ptr, position);
     }
-    
-    private ulong ReadProtoUInt16()
-    {
-        ushort value = 0;
-        int count = 0;
-        byte b;
-        
-        do
-        {
-            if (stream.IsAvailable(1))
-            {
-                b = (byte)stream.ReadByte();
-                value = (ushort)(value | (b & 0b01111111u) << (count * 7));
-                ++count;
-            }
-            else
-            {
-                throw new Exception();
-            }
-        }
-        while ((b & 0b10000000) > 0);
 
-        return value;
-    }
-    
-    private ulong ReadProtoUInt8()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private T ReadRawIntegerUnchecked<T>() where T : unmanaged, INumber<T>
     {
-        byte value = 0;
-        int count = 0;
-        byte b;
-        
-        do
-        {
-            if (stream.IsAvailable(1))
-            {
-                b = (byte)stream.ReadByte();
-                value = (byte)(value | (byte)((b & 0b01111111u) << (count * 7)));
-                ++count;
-            }
-            else
-            {
-                throw new Exception();
-            }
-        }
-        while ((b & 0b10000000) > 0);
+        ref T ptr = ref Unsafe.As<byte, T>(ref First);
+        nuint position = _position;
+        return ReadRawIntegerUnchecked(ref ptr, position);
+    }
 
-        return value;
-    }
-    
-    public (WireType type, int tag) ReadHead()
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private unsafe T ReadRawIntegerUnchecked<T>(ref T ptr, nuint position) where T : unmanaged, INumber<T>
     {
-        return (0, 0);
+        T result = Unsafe.AddByteOffset(ref ptr, position);
+        Volatile.Write(ref _position, (uint)position + (uint)sizeof(T));
+        return result;
+    }
+
+    [DoesNotReturn]
+    public static void ThrowMalformedMessage()
+    {
+        throw new MalformedProtoMessageException();
     }
 }

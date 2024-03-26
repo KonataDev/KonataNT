@@ -12,11 +12,11 @@ public ref struct ProtoWriter
 
     private readonly Stream? _underlyingStream;
 
-    private nint _position;
+    private uint _position;
 
     private readonly ref byte First => ref MemoryMarshal.GetReference(_span);
 
-    private readonly nint Length => (nint)(uint)_span.Length;
+    private readonly uint Length => (uint)_span.Length;
 
     public ProtoWriter(Stream? stream) : this(stream, BufferSize) { }
 
@@ -45,38 +45,48 @@ public ref struct ProtoWriter
         {
             var dst = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref First, _position), value.Length);
             value.CopyTo(dst);
-            _position += value.Length;
-            return;
         }
-        Flush();
-        _underlyingStream!.Write(value);
+        else
+        {
+            Flush();
+            _underlyingStream!.Write(value);
+        }
+        _position += (uint)value.Length;
     }
 
     public unsafe void WriteVarInt(ulong value)
     {
-        if (value < 0x80)
+        if (Length - _position >= 10)
         {
-            WriteRawByte((byte)value);
+            if (value < 0x80)
+            {
+                WriteRawByteUnchecked((byte)value);
+                return;
+            }
+            WriteVarIntUnchecked(value);
             return;
         }
+        WriteVarIntSlowPath(value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteVarIntUnchecked(ulong value)
+    {
         ref byte first = ref First;
-        nint position = _position;
-        nint length = Length;
-        while (position < length)
+        nuint position = _position;
+        while (true)
         {
             if (value < 0x80)
             {
                 Unsafe.Add(ref first, position) = (byte)value;
                 position++;
-                _position = position;
-                return;
+                break;
             }
-            Unsafe.Add(ref first, position) = (byte)((value & 0x7F) | 0x80);
+            Unsafe.Add(ref first, position) = (byte)((uint)value | 0xFFFFFF80);
             position++;
             value >>= 7;
         }
-        _position = position;
-        WriteVarIntSlowPath(value);
+        _position = (uint)position;
     }
 
     public unsafe void WriteVarInt(long value) => WriteVarInt((ulong)value);
@@ -107,12 +117,19 @@ public ref struct ProtoWriter
         WriteRawByte((byte)value);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteRawByte(byte value)
     {
         if (_position == Length)
         {
             Flush();
         }
+        WriteRawByteUnchecked(value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteRawByteUnchecked(byte value)
+    {
         Unsafe.Add(ref First, _position) = value;
         _position++;
     }
@@ -130,9 +147,6 @@ public ref struct ProtoWriter
 
     public void Dispose()
     {
-        if (_underlyingStream != null)
-        {
-            _underlyingStream.Dispose();
-        }
+        _underlyingStream?.Dispose();
     }
 }
