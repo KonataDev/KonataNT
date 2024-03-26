@@ -45,6 +45,7 @@ public class BaseClient
         Config = config;
         EventEmitter = new EventEmitter(this);
         PacketHandler = new PacketHandler(this);
+        CacheHandler = new CacheHandler(this);
         Logger = config.Logger ?? new DefaultLogger(EventEmitter);
     }
     

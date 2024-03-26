@@ -5,7 +5,7 @@ namespace KonataNT.Core;
 /// <summary>
 /// Caching Uid, <see cref="BotFriendContext"/>, <see cref="BotGroupContext"/>, <see cref="BotMemberContext"/>
 /// </summary>
-internal class CacheHandler(BotClient client)
+internal class CacheHandler(BaseClient client)
 {
     private Dictionary<uint, BotFriendContext> Friends { get; } = new();
     
