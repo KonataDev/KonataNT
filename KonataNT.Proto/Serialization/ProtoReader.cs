@@ -11,6 +11,8 @@ public ref struct ProtoReader
     private readonly ReadOnlySpan<byte> _span;
 
     private uint _position;
+    
+    public bool EndOfStream => _position == Length;
 
     private readonly ref byte First => ref MemoryMarshal.GetReference(_span);
 
@@ -133,6 +135,11 @@ public ref struct ProtoReader
     public byte[] ReadRawBytes(uint length)
     {
         return ReadRawBytesSpan(length).ToArray();
+    }
+
+    public uint ReadTag()
+    {
+        return ReadVarInt<uint>() >> 3;
     }
 
     [DoesNotReturn]

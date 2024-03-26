@@ -44,6 +44,7 @@ public partial class ProtoSourceGenerator
 #pragma warning disable CA1050 // Declare types in namespaces.
 
 using System;
+using System.Text;
 using KonataNT.Proto;
 using KonataNT.Proto.Serialization;
 ");
@@ -138,7 +139,104 @@ using KonataNT.Proto.Serialization;
         
         sb.AppendLine($"    public static IProto Deserialize(byte[] buffer)");
         sb.AppendLine("    {");
-        sb.AppendLine($"        return new {className}();");
+        sb.AppendLine($"        var {className} = new {className}();");
+        sb.AppendLine();
+        sb.AppendLine("        var reader = new ProtoReader(buffer.AsSpan());");
+        sb.AppendLine("        while (!reader.EndOfStream)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            uint tag = reader.ReadTag();");
+        sb.AppendLine("            switch (tag)");
+        sb.AppendLine("            {");
+
+        foreach (var meta in context.List)
+        {
+            EmitMemberDeserialize(sb, meta, className, meta.Name);
+        }
+        
+        sb.AppendLine("            }");
+        sb.AppendLine("        }");
+        sb.AppendLine($"        return {className};");
         sb.AppendLine("    }");
+    }
+
+    private static void EmitMemberDeserialize(StringBuilder sb, ProtoMemberMeta meta, string className, string name)
+    {
+        string type = meta.Type.ToString().Replace("?", "");
+
+        sb.AppendLine($"                case {meta.Tag}:");
+        sb.AppendLine("                {");
+        if (meta.IsEnumerable)
+        {
+            sb.AppendLine($"                    if ({name} == null) {name} = new {meta.Type}();");
+            switch (meta.WireType)
+            {
+                case WireType.LengthDelimited:
+                    sb.AppendLine($"                        var {name}Length = reader.ReadVarInt<uint>();");
+                    sb.AppendLine($"                        var {name}Buffer = reader.ReadRawBytes({name}Length);");
+                    if (meta.IsNested)
+                    {
+                        sb.AppendLine($"                    {name}.Add(({type}){type}.Deserialize({name}Buffer));");
+                    }
+                    else if (meta.Type.ToString() == "string" || meta.Type.ToString() == "string?")
+                    {
+                        sb.AppendLine($"                    {name}.Add(Encoding.UTF8.GetString({name}Buffer));");
+                    }
+                    else
+                    {
+                        sb.AppendLine($"                    {name}.Add({name}Buffer;)");
+                    }
+                    break;
+                case WireType.VarInt:
+                    if (type == "bool")
+                    {
+                        sb.AppendLine($"                    var result = reader.ReadVarInt<byte>();");
+                        sb.AppendLine($"                    {name}.Add(result != 0);");
+                    }
+                    else
+                    {
+                        sb.AppendLine($"                    {className}.{name} = reader.ReadVarInt<{type}>();");
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+        else
+        {
+            switch (meta.WireType)
+            {
+                case WireType.LengthDelimited:
+                    sb.AppendLine($"                    var {name}Length = reader.ReadVarInt<uint>();");
+                    sb.AppendLine($"                    var {name}Buffer = reader.ReadRawBytes({name}Length);");
+                    if (meta.IsNested)
+                    {
+                        sb.AppendLine($"                    {className}.{name} = ({type}){type}.Deserialize({name}Buffer);");
+                    }
+                    else if (meta.Type.ToString() == "string" || meta.Type.ToString() == "string?")
+                    {
+                        sb.AppendLine($"                    {className}.{name} = Encoding.UTF8.GetString({name}Buffer);");
+                    }
+                    else
+                    {
+                        sb.AppendLine($"                    {className}.{name} = {name}Buffer;");
+                    }
+                    break;
+                case WireType.VarInt:
+                    if (type == "bool")
+                    {
+                        sb.AppendLine($"                    var result = reader.ReadVarInt<byte>();");
+                        sb.AppendLine($"                    {className}.{name} = result != 0;");
+                    }
+                    else
+                    {
+                        sb.AppendLine($"                    {className}.{name} = reader.ReadVarInt<{type}>();");
+                    }
+                    break;
+                default: 
+                    throw new NotImplementedException();
+            }
+        }
+        sb.AppendLine("                    break;");
+        sb.AppendLine("                }");
     }
 }
