@@ -122,7 +122,7 @@ using KonataNT.Proto.Serialization;
             {
                 WireType.VarInt => "WriteVarInt",
                 WireType.LengthDelimited => "WriteLengthDelimited",
-                _ => throw new InvalidOperationException()
+                _ => throw new InvalidDataException($"Invalid WireType for member {meta.Tag} '{meta.Name}'")
             };
 
             if (meta is { IsValueType: true, IsNullable: true }) name += ".Value";

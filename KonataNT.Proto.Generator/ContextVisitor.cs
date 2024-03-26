@@ -79,6 +79,8 @@ internal class ContextVisitor(IGeneratorContext context) : CSharpSyntaxWalker
         
         return type.ToString() switch
         {
+            "bool" => WireType.VarInt,
+            
             "int" => WireType.VarInt,
             "uint" => WireType.VarInt,
             "long" => WireType.VarInt,
