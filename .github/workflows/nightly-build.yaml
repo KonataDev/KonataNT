@@ -1,0 +1,24 @@
+name: Nightly Build
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  Build-Package:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v4
+      name: Checkout Files
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Dotnet Publish
+      run: |
+        cd KonataNT
+        dotnet build KonataNT.csproj
+
