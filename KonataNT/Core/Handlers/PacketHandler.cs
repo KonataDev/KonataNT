@@ -11,7 +11,7 @@ using KonataNT.Utility.Generator;
 using KonataNT.Utility.Network;
 using KonataNT.Utility.Sign;
 
-namespace KonataNT.Core;
+namespace KonataNT.Core.Handlers;
 
 /// <summary>
 /// Packet handler is responsible for encrypt/decrypt/packup/unpack packets

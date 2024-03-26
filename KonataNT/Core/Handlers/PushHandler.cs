@@ -1,6 +1,4 @@
-using KonataNT.Events;
-    
-namespace KonataNT.Core;
+namespace KonataNT.Core.Handlers;
 
 internal class PushHandler
 {

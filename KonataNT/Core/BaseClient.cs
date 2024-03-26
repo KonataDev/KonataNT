@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using KonataNT.Common;
+using KonataNT.Core.Handlers;
 using KonataNT.Core.Packet;
 using KonataNT.Core.Packet.Login;
 using KonataNT.Core.Packet.Service;

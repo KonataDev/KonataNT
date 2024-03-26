@@ -1,6 +1,6 @@
 using KonataNT.Common.Context;
 
-namespace KonataNT.Core;
+namespace KonataNT.Core.Handlers;
 
 /// <summary>
 /// Caching Uid, <see cref="BotFriendContext"/>, <see cref="BotGroupContext"/>, <see cref="BotMemberContext"/>
