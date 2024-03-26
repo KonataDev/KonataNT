@@ -5,6 +5,7 @@ using KonataNT.Core.Packet;
 using KonataNT.Core.Packet.Login;
 using KonataNT.Core.Packet.Service;
 using KonataNT.Events;
+using KonataNT.Events.EventArgs;
 using KonataNT.Utility;
 using KonataNT.Utility.Binary;
 using KonataNT.Utility.Crypto;
@@ -40,7 +41,7 @@ public class BaseClient
         KeyStore = keystore;
         AppInfo = BotAppInfo.ProtocolToAppInfo[config.Protocol];
         Config = config;
-        EventEmitter = new EventEmitter();
+        EventEmitter = new EventEmitter(this);
         PacketHandler = new PacketHandler(this);
         Logger = config.Logger ?? new DefaultLogger(EventEmitter);
     }
@@ -198,12 +199,15 @@ public class BaseClient
             CredentialType.NewDeviceLogin => "trpc.login.ecdh.EcdhService.SsoNTLoginPasswordLoginNewDevice",
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
+
+        var packet = BuildNTLoginPacket(credentials.ToArray());
+        var response = await PacketHandler.SendPacket(command, packet);
     }
     
     /// <summary>
     /// Called when Bot is online through login, or reconnected / session resumed.
     /// </summary>
-    private async Task BotOnline()
+    private async Task BotOnline(bool isReconnect = false)
     {
         var statusRegister = new StatusRegister
         {
@@ -227,6 +231,9 @@ public class BaseClient
 
         const string command = "trpc.qq_new_tech.status_svc.StatusService.Register";
         var resp = await PacketHandler.SendPacket(command, statusRegister.Serialize());
+
+        var arg = new BotOnlineEvent(isReconnect ? BotOnlineEvent.OnlineReason.Reconnect : BotOnlineEvent.OnlineReason.Login);
+        EventEmitter.PostEvent(arg);
     }
 
     #region Private Builders

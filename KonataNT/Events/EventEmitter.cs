@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using KonataNT.Core;
 using KonataNT.Events.EventArgs;
 
@@ -9,12 +10,16 @@ public partial class EventEmitter
     
     private readonly Dictionary<Type, Action<EventBase>> _events = new();
     
-    public delegate void KonataEvent<in TEvent>(BotClient client, TEvent e) where TEvent : EventBase;
+    public delegate void KonataEvent<in TEvent>(BaseClient client, TEvent e) where TEvent : EventBase;
 
-    public void RegisterEvent()
+    public EventEmitter(BaseClient client)
     {
-        
+        RegisterEvent((BotOnlineEvent e) => OnBotOnlineEvent?.Invoke(client, e));
+        RegisterEvent((BotLogEvent e) => OnBotLogEvent?.Invoke(client, e));
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void RegisterEvent<TEvent>(Action<TEvent> action) where TEvent : EventBase => _events[typeof(TEvent)] = e => action((TEvent)e);
     
     internal void PostEvent(EventBase e)
     {
