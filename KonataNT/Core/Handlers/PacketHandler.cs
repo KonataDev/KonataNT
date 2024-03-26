@@ -76,6 +76,10 @@ internal class PacketHandler : ClientListener
                     
                     _client.Logger.LogDebug(Tag, $"Received SSOFrame: {sequence} | {command}");
                 }
+                else
+                {
+                    _client.Logger.LogDebug(Tag, $"Received MSF Push: {command}");
+                }
             }
             else
             {

@@ -5,18 +5,20 @@ using KonataNT.Core.Handlers;
 using KonataNT.Core.Packet;
 using KonataNT.Core.Packet.Login;
 using KonataNT.Core.Packet.Service;
+using KonataNT.Core.Packet.System;
 using KonataNT.Events;
 using KonataNT.Events.EventArgs;
 using KonataNT.Utility;
 using KonataNT.Utility.Binary;
 using KonataNT.Utility.Crypto;
+using TaskScheduler = KonataNT.Utility.TaskScheduler;
 
 namespace KonataNT.Core;
 
 /// <summary>
 /// The BaseClient that implements most basic login protocol.
 /// </summary>
-public class BaseClient
+public class BaseClient : IDisposable
 {
     private const string Tag = nameof(BaseClient);
     
@@ -33,6 +35,8 @@ public class BaseClient
     internal BotConfig Config { get; }
     
     
+    internal TaskScheduler Scheduler { get; }
+    
     internal PacketHandler PacketHandler { get; }
     
     internal CacheHandler CacheHandler { get; }
@@ -46,6 +50,7 @@ public class BaseClient
         KeyStore = keystore;
         AppInfo = BotAppInfo.ProtocolToAppInfo[config.Protocol];
         Config = config;
+        Scheduler = new TaskScheduler();
         EventEmitter = new EventEmitter(this);
         PacketHandler = new PacketHandler(this);
         CacheHandler = new CacheHandler(this);
@@ -55,6 +60,15 @@ public class BaseClient
     
     public async Task<(string Url, byte[] Image)?> FetchQrCode()
     {
+        if (KeyStore.D2.Length != 0)
+        {
+            Logger.LogWarning(Tag, "Invalid Session, clearing session data.");
+            
+            KeyStore.D2 = Array.Empty<byte>();
+            KeyStore.D2Key = new byte[16];
+            KeyStore.Tgt = Array.Empty<byte>();
+        }
+        
         await PacketHandler.Connect();
         
         var tlv = new TlvPacker(KeyStore, AppInfo);
@@ -244,14 +258,30 @@ public class BaseClient
 
         const string command = "trpc.qq_new_tech.status_svc.StatusService.Register";
         var resp = await PacketHandler.SendPacket(command, statusRegister.Serialize());
-        
-        Console.WriteLine(resp.Hex());
 
-        var arg = new BotOnlineEvent(isReconnect ? BotOnlineEvent.OnlineReason.Reconnect : BotOnlineEvent.OnlineReason.Login);
-        EventEmitter.PostEvent(arg);
+        if (StatusRegisterResponse.Deserialize(resp) is StatusRegisterResponse { Message: not null } response)
+        {
+            Logger.LogInformation(Tag, $"Status Register Response: {response.Message}");
+            
+            if (response.Message.Contains("success"))
+            {
+                Scheduler.Interval("SsoHeartBeat", response.Field4 * 1000, async () =>
+                {
+                    var packet = BuildSsoHeartBeatPacket();
+                    await PacketHandler.SendPacket("trpc.qq_new_tech.status_svc.StatusService.SsoHeartBeat", packet);
+                });
+                
+                var arg = new BotOnlineEvent(isReconnect
+                    ? BotOnlineEvent.OnlineReason.Reconnect
+                    : BotOnlineEvent.OnlineReason.Login);
+                EventEmitter.PostEvent(arg);
+            }
+        }
     }
 
     #region Private Builders
+
+    private byte[] BuildSsoHeartBeatPacket() => new NTSsoHeartBeat { Type = 1 }.Serialize();
 
     private byte[] BuildKeyExchangePacket()
     {
@@ -404,6 +434,11 @@ public class BaseClient
         return packet;
     }
     #endregion
+
+    public void Dispose()
+    {
+        Scheduler.Dispose();
+    }
 }
 
 public enum CredentialType
