@@ -60,6 +60,8 @@ public class BaseClient : IDisposable
     
     public async Task<(string Url, byte[] Image)?> FetchQrCode()
     {
+        await PacketHandler.Connect();
+
         if (KeyStore.D2.Length != 0)
         {
             if (DateTime.Now - KeyStore.SessionTime > TimeSpan.FromDays(15))
@@ -79,8 +81,6 @@ public class BaseClient : IDisposable
                 return null;
             }
         }
-        
-        await PacketHandler.Connect();
         
         var tlv = new TlvPacker(KeyStore, AppInfo);
         var body = new BinaryPacket()
