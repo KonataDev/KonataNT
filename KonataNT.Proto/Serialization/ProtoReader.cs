@@ -119,6 +119,22 @@ public ref struct ProtoReader
         return result;
     }
 
+    public ReadOnlySpan<byte> ReadRawBytesSpan(uint length)
+    {
+        if (Length - _position < length)
+        {
+            ThrowMalformedMessage();
+        }
+        var span = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref First, _position), (int)length);
+        _position += length;
+        return span;
+    }
+
+    public byte[] ReadRawBytes(uint length)
+    {
+        return ReadRawBytesSpan(length).ToArray();
+    }
+
     [DoesNotReturn]
     public static void ThrowMalformedMessage()
     {
