@@ -1,3 +1,5 @@
+using KonataNT.Message;
+
 namespace KonataNT.Common.Context;
 
 [Serializable]
@@ -44,6 +46,36 @@ public class BotMemberContext : IBotContactable
     public string Avatar => $"https://q1.qlogo.cn/g?b=qq&nk={Uin}&s=640";
 
     #endregion
+    
+    public async Task<bool> SendLike(int count)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public async Task<bool> Kick()
+    {
+        throw new NotImplementedException();
+    }
+    
+    public async Task<bool> SetSpecialTitle()
+    {
+        throw new NotImplementedException();
+    }
+    
+    public async Task<bool> Transfer()
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<MessageStruct> GetHistoryMessage(uint sequence, uint count)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public Task<MessageResult> SendMessage()
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public enum GroupMemberPermission : uint

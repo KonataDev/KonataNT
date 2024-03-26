@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using KonataNT.Core.Network;
 using KonataNT.Core.Packet;
+using KonataNT.Core.Packet.Service.Oidb;
 using KonataNT.Utility;
 using KonataNT.Utility.Binary;
 using KonataNT.Utility.Crypto;
@@ -89,6 +90,21 @@ internal class PacketHandler : ClientListener
         {
             _client.Logger.LogWarning(Tag, "Unsupported protocol: {protocol}");
         }
+    }
+
+    public Task<byte[]> SendOidb(ushort command, ushort subCommand, byte[] body, bool isUid)
+    {
+        string cmd = $"OidbSvcTrpcTcp.{command:0x}_{subCommand}";
+
+        var packet = new OidbSvcBase
+        {
+            Command = command,
+            SubCommand = subCommand,
+            Body = body,
+            IsUid = isUid
+        };
+        
+        return SendPacket(cmd, packet.Serialize());
     }
 
     public async Task<byte[]> SendPacket(string command, byte[] payload, int protocol = 12)

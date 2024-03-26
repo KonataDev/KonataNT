@@ -34,6 +34,8 @@ public class BaseClient
     
     internal PacketHandler PacketHandler { get; }
     
+    internal CacheHandler CacheHandler { get; }
+    
     internal ILogger Logger { get; init; }
     
     internal BaseClient(BotKeystore keystore, BotConfig config)

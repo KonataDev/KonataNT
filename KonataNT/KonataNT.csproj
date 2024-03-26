@@ -10,6 +10,9 @@
 
     <ItemGroup>
       <Folder Include="Core\Packet\Action\" />
+      <Folder Include="Core\Packet\Service\Oidb\Highway\" />
+      <Folder Include="Core\Packet\Service\Oidb\Request\" />
+      <Folder Include="Core\Packet\Service\Oidb\Response\" />
     </ItemGroup>
 
     <ItemGroup>
