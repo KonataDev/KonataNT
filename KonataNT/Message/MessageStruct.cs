@@ -1,5 +1,3 @@
-using KonataNT.Utility;
-
 namespace KonataNT.Message;
 
 public class MessageStruct
@@ -33,5 +31,6 @@ public class MessageStruct
     {
         Sender = (uin, name);
         Time = messageTime.ToUniversalTime();
+        Chain = new MessageChain();
     }
 }

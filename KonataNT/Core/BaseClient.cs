@@ -36,6 +36,8 @@ public class BaseClient
     
     internal CacheHandler CacheHandler { get; }
     
+    internal PushHandler PushHandler { get; }
+    
     internal ILogger Logger { get; init; }
     
     internal BaseClient(BotKeystore keystore, BotConfig config)
@@ -46,6 +48,7 @@ public class BaseClient
         EventEmitter = new EventEmitter(this);
         PacketHandler = new PacketHandler(this);
         CacheHandler = new CacheHandler(this);
+        PushHandler = new PushHandler(this);
         Logger = config.Logger ?? new DefaultLogger(EventEmitter);
     }
     
