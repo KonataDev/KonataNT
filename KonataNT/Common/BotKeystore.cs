@@ -2,6 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using KonataNT.Utility.Crypto;
 
+#pragma warning disable CS8618
+
 namespace KonataNT.Common;
 
 [Serializable]
@@ -13,6 +15,7 @@ public class BotKeystore
     {
         PasswordMd5 = MD5.HashData(Encoding.UTF8.GetBytes(password));
         Uin = botUin;
+        Guid = System.Guid.NewGuid().ToByteArray();
     }
     
     public uint Uin { get; set; }
@@ -33,7 +36,7 @@ public class BotKeystore
     
     public byte[] TgtgtKey { get; set; } = Array.Empty<byte>();
     
-    public byte[] Guid { get; set; } = System.Guid.NewGuid().ToByteArray();
+    public byte[] Guid { get; set; }
     
     public string Name { get; set; } = "Lagrange-vNEXT";
     

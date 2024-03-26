@@ -62,11 +62,22 @@ public class BaseClient : IDisposable
     {
         if (KeyStore.D2.Length != 0)
         {
-            Logger.LogWarning(Tag, "Invalid Session, clearing session data.");
+            if (DateTime.Now - KeyStore.SessionTime > TimeSpan.FromDays(15))
+            {
+                Logger.LogWarning(Tag, "Invalid Session, clearing session data.");
             
-            KeyStore.D2 = Array.Empty<byte>();
-            KeyStore.D2Key = new byte[16];
-            KeyStore.Tgt = Array.Empty<byte>();
+                KeyStore.D2 = Array.Empty<byte>();
+                KeyStore.D2Key = new byte[16];
+                KeyStore.Tgt = Array.Empty<byte>();
+            }
+            else
+            {
+                Logger.LogInformation(Tag, "Session is still valid, skipping QR code fetching.");
+                Logger.LogInformation(Tag, "Trying to login with existing session.");
+                await BotOnline();
+                
+                return null;
+            }
         }
         
         await PacketHandler.Connect();
@@ -209,26 +220,15 @@ public class BaseClient : IDisposable
         return true;
     }
 
-    public async Task Login(Memory<byte> credentials, CredentialType type)
+    public async Task Login()
     {
         if (KeyStore is not { ExchangeKey: not null, KeySign: not null })
         {
             Logger.LogFatal(Tag, "Please exchange key first.");
             return;
+            
+            
         }
-        
-        string command = type switch
-        {
-            CredentialType.EasyLogin => "trpc.login.ecdh.EcdhService.SsoNTLoginEasyLogin",
-            CredentialType.UnusualEasyLogin => "trpc.login.ecdh.EcdhService.SsoNTLoginEasyLoginUnusualDevice",
-            CredentialType.PasswordLogin => "trpc.login.ecdh.EcdhService.SsoNTLoginPasswordLogin",
-            CredentialType.UnusualPasswordLogin => "trpc.login.ecdh.EcdhService.SsoNTLoginPasswordLoginUnusualDevice",
-            CredentialType.NewDeviceLogin => "trpc.login.ecdh.EcdhService.SsoNTLoginPasswordLoginNewDevice",
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
-        };
-
-        var packet = BuildNTLoginPacket(credentials.ToArray());
-        var response = await PacketHandler.SendPacket(command, packet);
     }
     
     /// <summary>
@@ -247,7 +247,7 @@ public class BaseClient : IDisposable
             {
                 User = KeyStore.Name,
                 Os = AppInfo.Kernel,
-                OsVer = "",
+                OsVer = "Linux",
                 VendorName = "",
                 OsLower = AppInfo.VendorOs,
             },
@@ -261,6 +261,7 @@ public class BaseClient : IDisposable
 
         if (StatusRegisterResponse.Deserialize(resp) is StatusRegisterResponse { Message: not null } response)
         {
+            KeyStore.SessionTime = DateTime.Now;
             Logger.LogInformation(Tag, $"Status Register Response: {response.Message}");
             
             if (response.Message.Contains("success"))
