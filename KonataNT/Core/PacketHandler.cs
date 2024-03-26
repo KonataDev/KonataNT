@@ -203,12 +203,19 @@ internal class PacketHandler : ClientListener
 
     public override void OnDisconnect()
     {
-        throw new NotImplementedException();
+        _client.Logger.LogFatal(Tag, "Socket Disconnected, Scheduling Reconnect");
+        
+        if (_client.Config.AutoReconnect)
+        {
+            // TODO: Reconnection
+        }
     }
 
     public override void OnSocketError(Exception e)
     {
-        throw new NotImplementedException();
+        _client.Logger.LogFatal(Tag, $"Socket Error: {e.Message}");
+        _tcpClient.Disconnect();
+        if (!_tcpClient.Connected) OnDisconnect();
     }
     
     private static BinaryPacket InflatePacket(BinaryPacket original)
