@@ -171,6 +171,12 @@ public class BaseClient
             KeyStore.Tgt = collection.TlvMap[0x10a];
             KeyStore.D2 = collection.TlvMap[0x143];
             KeyStore.D2Key = collection.TlvMap[0x305];
+
+            var raw = collection.TlvMap[0x543];
+            var layer = Tlv543.Deserialize(raw);
+            var layer1 = ((Tlv543)layer).Layer1;
+            var layer2 = layer1.Layer2;
+            KeyStore.Uid = layer2.Uid;
             
             var uidRaw = collection.TlvMap[0x543];
             var t11A = collection.TlvMap[0x11a];
@@ -238,6 +244,8 @@ public class BaseClient
 
         const string command = "trpc.qq_new_tech.status_svc.StatusService.Register";
         var resp = await PacketHandler.SendPacket(command, statusRegister.Serialize());
+        
+        Console.WriteLine(resp.Hex());
 
         var arg = new BotOnlineEvent(isReconnect ? BotOnlineEvent.OnlineReason.Reconnect : BotOnlineEvent.OnlineReason.Login);
         EventEmitter.PostEvent(arg);
