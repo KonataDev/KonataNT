@@ -20,4 +20,9 @@
       <ProjectReference Include="..\KonataNT.Proto.Generator\KonataNT.Proto.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="..\README.md"/>
+        <None Include="..\LICENSE"/>
+    </ItemGroup>
+    
 </Project>
