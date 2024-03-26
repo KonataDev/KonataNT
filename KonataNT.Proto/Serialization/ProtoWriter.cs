@@ -80,6 +80,8 @@ public ref struct ProtoWriter
     }
 
     public unsafe void WriteVarInt(long value) => WriteVarInt((ulong)value);
+    
+    public unsafe void WriteVarInt(bool value) => WriteVarInt(value ? 1UL : 0UL);
 
     public unsafe void WriteLengthDelimited(string value)
     {
