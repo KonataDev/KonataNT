@@ -219,6 +219,22 @@ public class BaseClient : IDisposable
             Logger.LogError(Tag, "Failed to connect to server.");
             return Error.Unknown;
         }
+
+        if (KeyStore.D2.Length > 0 && DateTime.Now - KeyStore.SessionTime < TimeSpan.FromDays(15))
+        {
+            Logger.LogInformation(Tag, "Existing session found, do SessionLogin."); 
+            await BotOnline(true);
+            return Error.Success;
+        }
+        
+        if (DateTime.Now - KeyStore.SessionTime > TimeSpan.FromDays(15))
+        {
+            Logger.LogWarning(Tag, "Session expired, clearing session data.");
+            
+            KeyStore.D2 = Array.Empty<byte>();
+            KeyStore.D2Key = new byte[16];
+            KeyStore.Tgt = Array.Empty<byte>();
+        }
         
         if (KeyStore is not { ExchangeKey: not null, KeySign: not null })
         {
