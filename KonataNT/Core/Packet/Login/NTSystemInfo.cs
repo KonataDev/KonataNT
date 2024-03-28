@@ -1,11 +1,11 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Login;
 
 #pragma warning disable CS8618
 
 [ProtoContract]
-internal partial class NTSystemInfo
+internal class NTSystemInfo
 {
     [ProtoMember(1)] public string Os { get; set; }
 
@@ -13,7 +13,7 @@ internal partial class NTSystemInfo
 }
 
 [ProtoContract]
-internal partial class NTLoginInfo
+internal class NTLoginInfo
 {
     [ProtoMember(1)] public NTSystemInfo SystemInfo { get; set; }
     

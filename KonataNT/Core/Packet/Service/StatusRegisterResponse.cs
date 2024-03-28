@@ -1,9 +1,9 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Service;
 
 [ProtoContract]
-internal partial class StatusRegisterResponse
+internal class StatusRegisterResponse
 {
     [ProtoMember(2)] public string? Message { get; set; }
     

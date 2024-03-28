@@ -1,9 +1,9 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Service.Oidb;
 
 [ProtoContract]
-internal partial class OidbSvcBase
+internal class OidbSvcBase
 {
     [ProtoMember(1)] public ushort Command { get; set; }
     

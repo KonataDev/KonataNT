@@ -1,10 +1,13 @@
+using KonataNT.Core.Packet.Message;
+using KonataNT.Utility;
+
 namespace KonataNT.Core.Handlers;
 
 internal class PushHandler
 {
     private readonly BaseClient _client;
     
-    private Dictionary<string, Action<byte[]>> _handlerFunction;
+    private readonly Dictionary<string, Action<byte[]>> _handlerFunction;
 
     public PushHandler(BaseClient client)
     {
@@ -16,9 +19,14 @@ internal class PushHandler
         };
     }
     
+    public void HandlePush(string service, byte[] packet)
+    {
+        if (_handlerFunction.TryGetValue(service, out var value)) value(packet);
+    }
+    
     private void ParseMsfPush(byte[] packet)
     {
-        throw new NotImplementedException();
+        var msgPush = packet.Deserialize<PushMsg>();
     }
 
     private void ParseMsfKick(byte[] packet)

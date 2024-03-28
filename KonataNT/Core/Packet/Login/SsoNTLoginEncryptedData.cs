@@ -1,9 +1,9 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Login;
 
 [ProtoContract]
-internal partial class SsoNTLoginEncryptedData
+internal class SsoNTLoginEncryptedData
 {
     [ProtoMember(1)] public byte[]? Sign { get; set; }
     

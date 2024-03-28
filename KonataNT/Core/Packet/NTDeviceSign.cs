@@ -1,9 +1,9 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet;
 
 [ProtoContract]
-internal partial class NTDeviceSign
+internal class NTDeviceSign
 {
     [ProtoMember(15)] public string? Trace { get; set; }
     
@@ -13,7 +13,7 @@ internal partial class NTDeviceSign
 }
 
 [ProtoContract]
-internal partial class Sign
+internal class Sign
 {
     [ProtoMember(1)] public byte[]? Signature { get; set; }
     

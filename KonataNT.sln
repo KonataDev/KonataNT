@@ -2,12 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KonataNT", "KonataNT\KonataNT.csproj", "{087F540C-0352-4CBF-AC2D-B0250454959A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KonataNT.Proto", "KonataNT.Proto\KonataNT.Proto.csproj", "{0BC92DC5-AAD2-477B-90F9-D46C762E5270}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KonataNT.Proto.Generator", "KonataNT.Proto.Generator\KonataNT.Proto.Generator.csproj", "{432FC087-2E61-4113-AC62-D71D8CF33ED1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KonataNT.Proto.Test", "KonataNT.Proto.Test\KonataNT.Proto.Test.csproj", "{F08426EC-0D4E-4084-BE5C-7387704C8D17}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KonataNT.Test", "KonataNT.Test\KonataNT.Test.csproj", "{0B132267-886C-41DB-92B1-069E7F8B0B0A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0FBC8C8D-9FF8-4375-926E-ABDC475F9317}"
@@ -26,18 +20,6 @@ Global
 		{087F540C-0352-4CBF-AC2D-B0250454959A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{087F540C-0352-4CBF-AC2D-B0250454959A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{087F540C-0352-4CBF-AC2D-B0250454959A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0BC92DC5-AAD2-477B-90F9-D46C762E5270}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0BC92DC5-AAD2-477B-90F9-D46C762E5270}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0BC92DC5-AAD2-477B-90F9-D46C762E5270}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0BC92DC5-AAD2-477B-90F9-D46C762E5270}.Release|Any CPU.Build.0 = Release|Any CPU
-		{432FC087-2E61-4113-AC62-D71D8CF33ED1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{432FC087-2E61-4113-AC62-D71D8CF33ED1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{432FC087-2E61-4113-AC62-D71D8CF33ED1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{432FC087-2E61-4113-AC62-D71D8CF33ED1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F08426EC-0D4E-4084-BE5C-7387704C8D17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F08426EC-0D4E-4084-BE5C-7387704C8D17}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F08426EC-0D4E-4084-BE5C-7387704C8D17}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F08426EC-0D4E-4084-BE5C-7387704C8D17}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0B132267-886C-41DB-92B1-069E7F8B0B0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0B132267-886C-41DB-92B1-069E7F8B0B0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B132267-886C-41DB-92B1-069E7F8B0B0A}.Release|Any CPU.ActiveCfg = Release|Any CPU

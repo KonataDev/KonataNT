@@ -1,9 +1,9 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Login;
 
 [ProtoContract]
-internal partial class SsoKeyExchangePlain
+internal class SsoKeyExchangePlain
 {
     [ProtoMember(1)] public string? Uin { get; set; }
     

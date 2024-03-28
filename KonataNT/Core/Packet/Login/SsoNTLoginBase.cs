@@ -1,11 +1,11 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Login;
 
 #pragma warning disable CS8618
 
 [ProtoContract]
-internal partial class SsoNTLoginBase
+internal class SsoNTLoginBase
 {
     [ProtoMember(1)] public SsoNTLoginHeader Header { get; set; }
     

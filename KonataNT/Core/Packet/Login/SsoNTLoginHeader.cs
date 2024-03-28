@@ -1,9 +1,9 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Login;
 
 [ProtoContract]
-internal partial class SsoNTLoginHeader
+internal class SsoNTLoginHeader
 {
     [ProtoMember(1)] public SsoNTLoginUin? Uin { get; set; }
     

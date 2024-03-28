@@ -62,24 +62,13 @@ public class BaseClient : IDisposable
     {
         await PacketHandler.Connect();
 
-        if (KeyStore.D2.Length != 0)
+        if (KeyStore.D2.Length > 0)
         {
-            if (DateTime.Now - KeyStore.SessionTime > TimeSpan.FromDays(15))
-            {
-                Logger.LogWarning(Tag, "Invalid Session, clearing session data.");
+            Logger.LogWarning(Tag, "Invalid Session, clearing session data.");
             
-                KeyStore.D2 = Array.Empty<byte>();
-                KeyStore.D2Key = new byte[16];
-                KeyStore.Tgt = Array.Empty<byte>();
-            }
-            else
-            {
-                Logger.LogInformation(Tag, "Session is still valid, skipping QR code fetching.");
-                Logger.LogInformation(Tag, "Trying to login with existing session.");
-                await BotOnline();
-                
-                return null;
-            }
+            KeyStore.D2 = Array.Empty<byte>();
+            KeyStore.D2Key = new byte[16];
+            KeyStore.Tgt = Array.Empty<byte>();
         }
         
         var tlv = new TlvPacker(KeyStore, AppInfo);
@@ -198,10 +187,7 @@ public class BaseClient : IDisposable
             KeyStore.D2Key = collection.TlvMap[0x305];
 
             var raw = collection.TlvMap[0x543];
-            var layer = Tlv543.Deserialize(raw);
-            var layer1 = ((Tlv543)layer).Layer1;
-            var layer2 = layer1.Layer2;
-            KeyStore.Uid = layer2.Uid;
+            KeyStore.Uid = raw.Deserialize<Tlv543>().Layer1.Layer2.Uid;
             
             var uidRaw = collection.TlvMap[0x543];
             var t11A = collection.TlvMap[0x11a];
@@ -259,7 +245,7 @@ public class BaseClient : IDisposable
         const string command = "trpc.qq_new_tech.status_svc.StatusService.Register";
         var resp = await PacketHandler.SendPacket(command, statusRegister.Serialize());
 
-        if (StatusRegisterResponse.Deserialize(resp) is StatusRegisterResponse { Message: not null } response)
+        if (resp.Deserialize<StatusRegisterResponse>() is { Message: not null } response)
         {
             KeyStore.SessionTime = DateTime.Now;
             Logger.LogInformation(Tag, $"Status Register Response: {response.Message}");

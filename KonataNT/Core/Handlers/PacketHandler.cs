@@ -79,6 +79,19 @@ internal class PacketHandler : ClientListener
                 else
                 {
                     _client.Logger.LogDebug(Tag, $"Received MSF Push: {command}");
+
+                    try
+                    {
+                        var payload = isCompressed == 0
+                            ? reader.ReadBytes(Prefix.Uint32 | Prefix.WithPrefix).ToArray()
+                            : InflatePacket(reader).ToArray();
+                        _client.PushHandler.HandlePush(command, payload);
+                    }
+                    catch (Exception e)
+                    {
+                        _client.Logger.LogError(Tag, $"Failed to handle MSF Push: {e.Message}");
+                        _client.Logger.LogDebug(Tag, e.StackTrace ?? string.Empty);
+                    }
                 }
             }
             else

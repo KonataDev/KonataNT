@@ -1,11 +1,11 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 #pragma warning disable CS8618
 
 namespace KonataNT.Core.Packet.Login;
 
 [ProtoContract]
-internal partial class SsoKeyExchange
+internal class SsoKeyExchange
 {
     [ProtoMember(1)] public byte[] PubKey { get; set; }
     

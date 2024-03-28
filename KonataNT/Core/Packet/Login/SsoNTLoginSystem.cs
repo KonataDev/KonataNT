@@ -1,9 +1,9 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Login;
 
 [ProtoContract]
-internal partial class SsoNTLoginSystem
+internal class SsoNTLoginSystem
 {
     [ProtoMember(1)] public string Os { get; set; } = string.Empty;
     

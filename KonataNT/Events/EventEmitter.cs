@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using KonataNT.Core;
-using KonataNT.Core.Handlers;
 using KonataNT.Events.EventArgs;
 
 namespace KonataNT.Events;

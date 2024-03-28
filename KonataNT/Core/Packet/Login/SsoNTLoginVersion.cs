@@ -1,9 +1,9 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Login;
 
 [ProtoContract]
-internal partial class SsoNTLoginVersion
+internal class SsoNTLoginVersion
 {
     [ProtoMember(1)] public string? KernelVersion { get; set; }
 

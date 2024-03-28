@@ -1,9 +1,9 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Login;
 
 [ProtoContract]
-internal partial class SsoNTLoginCookie
+internal class SsoNTLoginCookie
 {
     [ProtoMember(1)] public string? Cookie { get; set; }
 }

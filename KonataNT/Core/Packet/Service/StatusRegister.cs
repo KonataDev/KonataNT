@@ -1,9 +1,9 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Service;
 
 [ProtoContract]
-internal partial class StatusRegister
+internal class StatusRegister
 {
     [ProtoMember(1)] public string? Guid { get; set; }
 
@@ -25,7 +25,7 @@ internal partial class StatusRegister
 }
 
 [ProtoContract]
-internal partial class OnlineOsInfo
+internal class OnlineOsInfo
 {
     [ProtoMember(1)] public string? User { get; set; }
 	

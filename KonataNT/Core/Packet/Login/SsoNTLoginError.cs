@@ -1,9 +1,9 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Login;
 
 [ProtoContract]
-internal partial class SsoNTLoginError
+internal class SsoNTLoginError
 {
     [ProtoMember(1)] public uint ErrorCode { get; set; }
     

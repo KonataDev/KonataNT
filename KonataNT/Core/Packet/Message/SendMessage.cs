@@ -1,9 +1,9 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Message;
 
 [ProtoContract]
-internal partial class SendMessage
+internal class SendMessage
 {
     
 }

@@ -1,9 +1,9 @@
-using KonataNT.Proto;
+using ProtoBuf;
 
 namespace KonataNT.Core.Packet.Login;
 
 [ProtoContract]
-internal partial class SsoNTLoginCaptcha
+internal class SsoNTLoginCaptcha
 {
     [ProtoMember(1)] public string? Ticket { get; set; }
     

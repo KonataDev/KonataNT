@@ -19,5 +19,9 @@
       <ProjectReference Include="..\KonataNT.Proto\KonataNT.Proto.csproj" />
       <ProjectReference Include="..\KonataNT.Proto.Generator\KonataNT.Proto.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="protobuf-net" Version="3.2.30" />
+    </ItemGroup>
     
 </Project>
