@@ -60,8 +60,13 @@ public class BaseClient : IDisposable
     
     public async Task<(string Url, byte[] Image)?> FetchQrCode()
     {
-        await PacketHandler.Connect();
-
+        bool connect = await PacketHandler.Connect();
+        if (!connect)
+        {
+            Logger.LogError(Tag, "Failed to connect to server.");
+            return null;
+        }
+        
         if (KeyStore.D2.Length > 0)
         {
             Logger.LogWarning(Tag, "Invalid Session, clearing session data.");
@@ -206,17 +211,87 @@ public class BaseClient : IDisposable
         return true;
     }
 
-    public async Task Login()
+    public async Task<Error> Login()
     {
+        bool connect = await PacketHandler.Connect();
+        if (!connect)
+        {
+            Logger.LogError(Tag, "Failed to connect to server.");
+            return Error.Unknown;
+        }
+        
         if (KeyStore is not { ExchangeKey: not null, KeySign: not null })
         {
-            Logger.LogFatal(Tag, "Please exchange key first.");
-            return;
-            
-            
+            Logger.LogWarning(Tag, "Key is null, starting key exchange.");
+
+            bool keyXchgResult = await KeyExchange();
+            if (!keyXchgResult)
+            {
+                Logger.LogError(Tag, "Failed to exchange key.");
+                return Error.Unknown;
+            }
         }
+
+        if (KeyStore.A2?.Length > 0)
+        {
+            Logger.LogWarning(Tag, "Existing A2 found, do EasyLogin.");
+            var packet = BuildNTLoginPacket(KeyStore.A2);
+            var response = await PacketHandler.SendPacket("trpc.login.ecdh.EcdhService.SsoNTLoginEasyLogin", packet);
+            var payload = response.Deserialize<SsoNTLoginEncryptedData>();
+            if (KeyStore.ExchangeKey == null) throw new InvalidOperationException("Key is null");
+            
+            var decrypted = AesProvider.Decrypt(payload.GcmCalc, KeyStore.ExchangeKey);
+            var data = decrypted.Deserialize<SsoNTLoginBase<SsoNTLoginResponse>>();
+            
+            if (data.Header.Error is { ErrorCode: not 0 } error)
+            {
+                Logger.LogError(Tag, $"Failed to login: {error.ErrorCode}");
+                return (Error)error.ErrorCode;
+            }
+            
+            if (data.Data.Credentials is null)
+            {
+                Logger.LogError(Tag, "Failed to login: Credential is null.");
+                return Error.Unknown;
+            }
+            
+            KeyStore.D2 = data.Data.Credentials.D2;
+            KeyStore.D2Key = data.Data.Credentials.D2Key;
+            KeyStore.Tgt = data.Data.Credentials.Tgt;
+            KeyStore.A2 = data.Data.Credentials.TempPassword;
+            
+            await BotOnline();
+            
+            Logger.LogInformation(Tag, "Login Success!");
+        }
+
+        return Error.Success;
     }
-    
+
+    private async Task<bool> KeyExchange()
+    {
+        if (KeyStore.D2.Length > 0)
+        {
+            Logger.LogWarning(Tag, "Invalid Session, clearing session data.");
+                
+            KeyStore.D2 = Array.Empty<byte>();
+            KeyStore.D2Key = new byte[16];
+            KeyStore.Tgt = Array.Empty<byte>();
+        }
+            
+        var keyXchgPacket = BuildKeyExchangePacket();
+        var response = await PacketHandler.SendPacket("trpc.login.ecdh.EcdhService.SsoKeyExchange", keyXchgPacket);
+        var payload = response.Deserialize<SsoKeyExchangeResponse>();
+            
+        var shareKey = KeyStore.PrimeProvider.GenerateShared(payload.PublicKey, false);
+        var gcmDecrypted = AesProvider.Decrypt(payload.GcmEncrypted, shareKey);
+        var decrypted = gcmDecrypted.Deserialize<SsoKeyExchangeDecrypted>();
+            
+        KeyStore.ExchangeKey = decrypted.GcmKey;
+        KeyStore.KeySign = decrypted.Sign;
+        return true;
+    }
+
     /// <summary>
     /// Called when Bot is online through login, or reconnected / session resumed.
     /// </summary>
@@ -281,26 +356,26 @@ public class BaseClient : IDisposable
             Uin = KeyStore.Uin.ToString(),
             Guid = KeyStore.Guid
         }.Serialize();
+        var gcmCalc1 = AesProvider.Encrypt(plain, shareKey);
         
         var hashPlain = new BinaryPacket()
             .WriteBytes(KeyStore.PrimeProvider.GetPublicKey(false))
             .WriteUint(1)
-            .WriteBytes(plain)
+            .WriteBytes(gcmCalc1)
             .WriteUint(0)
             .WriteUint(timestamp);
         
         var hash = SHA256.HashData(hashPlain.ToArray());
 
-        var gcmClac1 = AesProvider.Encrypt(plain, shareKey);
-        var gcmClac2 = AesProvider.Encrypt(hash, gcmCalc2Key.UnHex());
+        var gcmCalc2 = AesProvider.Encrypt(hash, gcmCalc2Key.UnHex());
 
         return new SsoKeyExchange
         {
             PubKey = KeyStore.PrimeProvider.GetPublicKey(false),
             Type = 1,
-            GcmCalc1 = gcmClac1,
+            GcmCalc1 = gcmCalc1,
             Timestamp = timestamp,
-            GcmCalc2 = gcmClac2
+            GcmCalc2 = gcmCalc2
         }.Serialize();
     }
 
@@ -312,7 +387,7 @@ public class BaseClient : IDisposable
         {
             Uin = new SsoNTLoginUin
             {
-                Uid = KeyStore.Uid
+                Uin = KeyStore.Uin.ToString()
             },
             System = new SsoNTLoginSystem
             {
@@ -333,7 +408,7 @@ public class BaseClient : IDisposable
             }
         };
         
-        var packet = new SsoNTLoginBase
+        var packet = new SsoNTLoginBase<SsoNTLoginData>
         {
             Header = header,
             Data = new SsoNTLoginData
@@ -426,6 +501,16 @@ public class BaseClient : IDisposable
     {
         Scheduler.Dispose();
     }
+}
+
+public enum Error : uint
+{
+    TokenExpired = 140022015,
+    UnusualVerify = 140022011,
+    NewDeviceVerify = 140022010,
+    CaptchaVerify = 140022008,
+    Success = 0,
+    Unknown = 1,
 }
 
 public enum CredentialType
