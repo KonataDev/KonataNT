@@ -3,6 +3,7 @@ using KonataNT.Events;
 using KonataNT.Events.EventArgs;
 using KonataNT.Message;
 using KonataNT.Message.Chains;
+using KonataNT.Utility;
 
 namespace KonataNT.Core.Handlers;
 
@@ -43,17 +44,39 @@ internal class MessageHandler(BaseClient client)
                 }
                 case { NotOnlineImage: { } image }:  // private image
                 {
+                    const string legacyUrl = "http://gchat.qpic.cn/gchatpic_new/0/0-0-";
+                    const string multimediaUrl = "https://multimedia.nt.qq.com.cn";
+                    string url = image.OrigUrl.Contains("rkey") 
+                        ? $"{multimediaUrl}{image.OrigUrl}" 
+                        : $"{legacyUrl}{image.OrigUrl}";
+                    
+                    var chain = ImageChain.Create(url, image.FilePath, image.PicMd5.Hex(), (uint)image.PicWidth, (uint)image.PicHeight, image.DownloadLen);
+                    @struct.Chain.Add(chain);
                     break;
                 }
                 case { CustomFace: { } image }:  // group image
                 {
+                    const string legacyUrl = "http://gchat.qpic.cn/gchatpic_new/0/0-0-";
+                    const string multimediaUrl = "https://multimedia.nt.qq.com.cn";
+                    string url = image.OrigUrl.Contains("rkey")
+                        ? $"{multimediaUrl}{image.OrigUrl}"
+                        : $"{legacyUrl}{image.OrigUrl}";
+                    
+                    var chain = ImageChain.Create(url, image.FilePath, image.Md5.Hex(), (uint)image.Width, (uint)image.Height, image.Size);
+                    @struct.Chain.Add(chain);
                     break;
                 }
                 case { CommonElem: { } common }:  //  tx's new type shit
                 {
                     switch (common.BusinessType)
                     {
-                        
+                        case 12:
+                        case 22:  // group ptt
+                        default: 
+                        {
+                            client.Logger.LogWarning(Tag, $"Invalid business type for common element: {common.BusinessType}");
+                            break;
+                        }
                     }
                         
                     break;

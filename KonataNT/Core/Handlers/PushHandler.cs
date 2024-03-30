@@ -32,6 +32,7 @@ internal class PushHandler
 
         switch (msgPush.Message.ContentHead.Type)
         {
+            case 208: // private ptt
             case 166: // private msg
             case 82: // group msg
             {
