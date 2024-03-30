@@ -24,6 +24,11 @@ internal class CacheHandler
         {
             if (!Members.ContainsKey(e.GroupUin)) await GetMembers(e.GroupUin);
         };
+        
+        _client.EventEmitter.OnBotPrivateMessageEvent += async (_, e) =>
+        {
+            if (!Friends.ContainsKey(e.FriendUin)) await GetFriend(e.FriendUin);
+        };
     }
 
     private Dictionary<uint, BotFriendContext> Friends { get; } = new();
@@ -65,7 +70,7 @@ internal class CacheHandler
             var memberList = new List<BotMemberContext>();
             string? token = null;
             
-            while (token != null)
+            do
             {
                 var packet = new OidbSvcTrpcTcp0xFE7_3
                 {
@@ -89,9 +94,22 @@ internal class CacheHandler
                 var body = payload.Body?.Deserialize<OidbSvcTrpcTcp0xFE7_2Response>();
                 
                 if (body == null) break;
-
+                
+                memberList.AddRange(body.Members.Select(member => new BotMemberContext(
+                    (BotClient)_client,
+                    member.Uin.Uin,
+                    member.Uin.Uid,
+                    (GroupMemberPermission)member.Permission,
+                    member.Level?.Level ?? 0,
+                    member.MemberCard.MemberCard,
+                    member.MemberName,
+                    DateTimeOffset.FromUnixTimeSeconds(member.JoinTimestamp).DateTime,
+                    DateTimeOffset.FromUnixTimeSeconds(member.LastMsgTimestamp).DateTime)));
+                
                 token = body.Token;
-            }
+            } while (token != null);
+            
+            Members[groupUin] = memberList;
         }
 
         if (Members.TryGetValue(groupUin, out members)) return members;

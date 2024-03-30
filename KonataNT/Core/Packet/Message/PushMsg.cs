@@ -1,3 +1,5 @@
+using KonataNT.Core.Packet.Message.Component;
+using KonataNT.Core.Packet.Message.Element;
 using ProtoBuf;
 
 #pragma warning disable CS8618
@@ -16,6 +18,8 @@ internal class PushMsgBody
     [ProtoMember(1)] public ResponseHead ResponseHead { get; set; }
     
     [ProtoMember(2)] public ContentHead ContentHead { get; set; }
+    
+    [ProtoMember(3)] public MessageBody Body { get; set; }
 }
 
 [ProtoContract]
@@ -66,4 +70,27 @@ internal class ContentHead
     [ProtoMember(5)] public uint Sequence { get; set; }
     
     [ProtoMember(6)] public uint Timestamp { get; set; }
+}
+
+[ProtoContract]
+internal class MessageBody
+{
+    [ProtoMember(1)] public RichText? RichText { get; set; }
+    
+    [ProtoMember(2)] public byte[]? MsgContent { get; set; } // Offline file is now put here(?
+    
+    [ProtoMember(3)] public byte[]? MsgEncryptContent { get; set; }
+}
+
+
+[ProtoContract]
+internal class RichText
+{
+    [ProtoMember(1)] public Attr? Attr { get; set; }
+    
+    [ProtoMember(2)] public List<Elem> Elems { get; set; }
+    
+    [ProtoMember(3)] public NotOnlineFile? NotOnlineFile { get; set; }
+    
+    [ProtoMember(4)] public Ptt? Ptt { get; set; }
 }

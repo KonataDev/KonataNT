@@ -43,6 +43,8 @@ public class BaseClient : IDisposable
     
     internal PushHandler PushHandler { get; }
     
+    internal MessageHandler MessageHandler { get; }
+    
     internal ILogger Logger { get; init; }
     
     internal BaseClient(BotKeystore keystore, BotConfig config)
@@ -50,11 +52,14 @@ public class BaseClient : IDisposable
         KeyStore = keystore;
         AppInfo = BotAppInfo.ProtocolToAppInfo[config.Protocol];
         Config = config;
+        
         Scheduler = new TaskScheduler();
         EventEmitter = new EventEmitter(this);
         PacketHandler = new PacketHandler(this);
         CacheHandler = new CacheHandler(this);
         PushHandler = new PushHandler(this);
+        MessageHandler = new MessageHandler(this);
+        
         Logger = config.Logger ?? new DefaultLogger(EventEmitter);
     }
     

@@ -1,0 +1,14 @@
+using ProtoBuf;
+
+#pragma warning disable CS8618
+namespace KonataNT.Core.Packet.Message.Element.Implementation.Extra;
+
+[ProtoContract]
+internal class QSmallFaceExtra
+{
+    [ProtoMember(1)] public uint FaceId { get; set; }
+    
+    [ProtoMember(2)] public string Preview { get; set; }
+    
+    [ProtoMember(3)] public string Preview2 { get; set; }
+}

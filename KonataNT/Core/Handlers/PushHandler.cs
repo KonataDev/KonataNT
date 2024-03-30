@@ -1,5 +1,4 @@
 using KonataNT.Core.Packet.Message;
-using KonataNT.Message;
 using KonataNT.Utility;
 
 namespace KonataNT.Core.Handlers;
@@ -36,7 +35,7 @@ internal class PushHandler
             case 166: // private msg
             case 82: // group msg
             {
-                var eventArg = MessagePacker.Parse(msgPush.Message);
+                var eventArg = _client.MessageHandler.Parse(msgPush.Message);
                 _client.EventEmitter.PostEvent(eventArg);
                 break;
             }

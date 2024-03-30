@@ -1,6 +1,8 @@
+using KonataNT.Message.Chains;
+
 namespace KonataNT.Message;
 
-public class MessageChain
+public class MessageChain : List<BaseChain>
 {
     
 }
