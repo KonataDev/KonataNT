@@ -16,6 +16,9 @@ public partial class EventEmitter
     {
         RegisterEvent((BotOnlineEvent e) => OnBotOnlineEvent?.Invoke(client, e));
         RegisterEvent((BotLogEvent e) => OnBotLogEvent?.Invoke(client, e));
+        RegisterEvent((BotGroupMessageEvent e) => OnBotGroupMessageEvent?.Invoke(client, e));
+        RegisterEvent((BotPrivateMessageEvent e) => OnBotPrivateMessageEvent?.Invoke(client, e));
+        RegisterEvent((BotStrangerMessageEvent e) => OnBotStrangerMessageEvent?.Invoke(client, e));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

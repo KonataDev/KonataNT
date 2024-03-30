@@ -1,12 +1,31 @@
 using KonataNT.Common.Context;
+using KonataNT.Core.Packet.Oidb;
+using KonataNT.Core.Packet.Service.Oidb;
+using KonataNT.Utility;
 
 namespace KonataNT.Core.Handlers;
 
 /// <summary>
 /// Caching Uid, <see cref="BotFriendContext"/>, <see cref="BotGroupContext"/>, <see cref="BotMemberContext"/>
 /// </summary>
-internal class CacheHandler(BaseClient client)
+internal class CacheHandler
 {
+    private readonly BaseClient _client;
+    
+
+    /// <summary>
+    /// Caching Uid, <see cref="BotFriendContext"/>, <see cref="BotGroupContext"/>, <see cref="BotMemberContext"/>
+    /// </summary>
+    public CacheHandler(BaseClient client)
+    {
+        _client = client;
+
+        _client.EventEmitter.OnBotGroupMessageEvent += async (_, e) =>
+        {
+            if (!Members.ContainsKey(e.GroupUin)) await GetMembers(e.GroupUin);
+        };
+    }
+
     private Dictionary<uint, BotFriendContext> Friends { get; } = new();
     
     private Dictionary<uint, BotGroupContext> Groups { get; } = new();
@@ -43,7 +62,36 @@ internal class CacheHandler(BaseClient client)
     {
         if (refreshCache || !Members.TryGetValue(groupUin, out var members))
         {
+            var memberList = new List<BotMemberContext>();
+            string? token = null;
             
+            while (token != null)
+            {
+                var packet = new OidbSvcTrpcTcp0xFE7_3
+                {
+                    GroupUin = groupUin,
+                    Field2 = 5,
+                    Field3 = 2,
+                    Body = new OidbSvcTrpcScp0xFE7_3Body
+                    {
+                        MemberName = true,
+                        MemberCard = true,
+                        Level = true,
+                        JoinTimestamp = true,
+                        LastMsgTimestamp = true,
+                        Permission = true,
+                    },
+                    Token = token
+                };
+                
+                var response = await _client.PacketHandler.SendOidb(0xfe7, 3, packet.Serialize(), false);
+                var payload = response.Deserialize<OidbSvcBase>();
+                var body = payload.Body?.Deserialize<OidbSvcTrpcTcp0xFE7_2Response>();
+                
+                if (body == null) break;
+
+                token = body.Token;
+            }
         }
 
         if (Members.TryGetValue(groupUin, out members)) return members;

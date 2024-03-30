@@ -7,13 +7,8 @@ public class MessageStruct
     public uint Sequence { get; internal set; }
 
     public MessageChain Chain { get; internal set; }
-
-    public enum Source
-    {
-        Group,
-        Friend,
-        Stranger
-    }
+    
+    public Source SourceType { get; internal set; }
     
     /// <summary>
     /// <b>[In] [Out]</b>     <br/>
@@ -32,5 +27,12 @@ public class MessageStruct
         Sender = (uin, name);
         Time = messageTime.ToUniversalTime();
         Chain = new MessageChain();
+    }
+    
+    public enum Source
+    {
+        Group,
+        Friend,
+        Stranger
     }
 }

@@ -36,7 +36,8 @@ internal class PushHandler
             case 166: // private msg
             case 82: // group msg
             {
-                var message = MessagePacker.Parse(msgPush.Message);
+                var eventArg = MessagePacker.Parse(msgPush.Message);
+                _client.EventEmitter.PostEvent(eventArg);
                 break;
             }
             default:

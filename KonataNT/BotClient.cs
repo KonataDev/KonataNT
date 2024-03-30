@@ -22,7 +22,7 @@ public class BotClient : BaseClient
         throw new Exception("干什么！");
     }
 
-    public async Task<List<BotGroupContext>> GetGroups(bool refreshCache = false)
+    public async Task<List<BotGroupContext>> GetGroup(uint groupUin, bool refreshCache = false)
     {
         throw new NotImplementedException();
     }
