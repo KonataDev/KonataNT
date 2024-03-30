@@ -23,54 +23,56 @@ internal class MessageHandler(BaseClient client)
 
         if (msg.Body.RichText?.Elems is { } elems)
         {
-            foreach (var elem in elems)
+            foreach (var elem in elems) switch (elem)
             {
-                switch (elem)
+                case { Text: { Attr6Buf: { } extra } text }:  // at
                 {
-                    case { Text: { } text }:
+                    break;
+                }
+                case { Text: { } text }:  // raw text
+                {
+                    if (@struct.Chain.FirstOrDefault(x => x is TextChain) is { } existing)
                     {
-                        if (@struct.Chain.FirstOrDefault(x => x is TextChain) is { } existing)
-                        {
-                            ((TextChain)existing).Combine(TextChain.Create(text.Str ?? ""));
-                        }
-                        else
-                        {
-                            @struct.Chain.Add(TextChain.Create(text.Str ?? ""));
-                        }
-                        break;
+                        ((TextChain)existing).Combine(TextChain.Create(text.Str ?? ""));
                     }
-                    case { NotOnlineImage: { } image }:
+                    else
                     {
-                        break;
+                        @struct.Chain.Add(TextChain.Create(text.Str ?? ""));
                     }
-                    case { CustomFace: { } image }:
+                    break;
+                }
+                case { NotOnlineImage: { } image }:  // private image
+                {
+                    break;
+                }
+                case { CustomFace: { } image }:  // group image
+                {
+                    break;
+                }
+                case { CommonElem: { } common }:  //  tx's new type shit
+                {
+                    switch (common.BusinessType)
                     {
-                        break;
-                    }
-                    case { CommonElem: { } common }:
-                    {
-                        switch (common.BusinessType)
-                        {
-                            
-                        }
                         
-                        break;
                     }
+                        
+                    break;
                 }
             }
         }
         
-        client.Logger.LogInformation(Tag, $"Received message from {name} ({msg.ResponseHead.FromUin})");
+        client.Logger.LogInformation(Tag, $"Received message from {name} ({msg.ResponseHead.FromUin}): {@struct.Chain.ToPreviewString()}");
 
         return @struct.SourceType switch
         {
             MessageStruct.Source.Group => new BotGroupMessageEvent(msg.ResponseHead.Grp?.GroupUin ?? 0, msg.ResponseHead.FromUin, @struct),
             MessageStruct.Source.Friend => new BotPrivateMessageEvent(msg.ResponseHead.FromUin, @struct),
+            MessageStruct.Source.Stranger => throw new NotImplementedException("干什么！"),
             _ => throw new NotImplementedException()
         };
     }
 
-    public MessageChain Build(BotClient client, MessageStruct @struct)
+    public MessageChain Build(MessageStruct @struct)
     {
         throw new NotImplementedException();
     }

@@ -4,7 +4,7 @@ public class TextChain : BaseChain
 {
     public string Content { get; private set; }
 
-    private TextChain(string content)
+    private TextChain(string content) : base(ChainType.Text, ChainMode.Singleton)
     {
         Content = content;
     }
