@@ -13,35 +13,41 @@ internal class CacheHandler(BaseClient client)
     
     private Dictionary<uint, List<BotMemberContext>> Members { get; } = new();
     
-    private Dictionary<string, uint> UidToUin { get; } = new();
+    private Dictionary<uint, string> UinToUid { get; } = new();
+
+    public string this[uint index] => UinToUid[index];
     
-    public async Task<uint> ResolveUin(uint? groupUin, string uid)
-    {
-        throw new NotImplementedException();
-    }
-    
-    public async Task<string> ResolveUid(uint? groupUin, uint uin)
-    {
-        throw new NotImplementedException();
-    }
+    public uint this[string index] => UinToUid.FirstOrDefault(x => x.Value == index).Key;
     
     public async Task<BotFriendContext> GetFriend(uint uin, bool refreshCache = false)
     {
-        if (refreshCache || Friends.Count == 0)
+        if (refreshCache || Friends.Count == 0)  // count == 0 for initial cache
         {
             
         }
         
-        throw new NotImplementedException();
+        throw new NotImplementedException("干什么！");
     }
     
     public async Task<BotGroupContext> GetGroup(uint groupUin, bool refreshCache = false)
     {
-        throw new NotImplementedException();
+        if (refreshCache || Groups.Count == 0)  // count == 0 for initial cache
+        {
+            
+        }
+        
+        throw new NotImplementedException("干什么！");
     }
     
     public async Task<List<BotMemberContext>> GetMembers(uint groupUin, bool refreshCache = false)
     {
-        throw new NotImplementedException();
+        if (refreshCache || !Members.TryGetValue(groupUin, out var members))
+        {
+            
+        }
+
+        if (Members.TryGetValue(groupUin, out members)) return members;
+        
+        throw new NotImplementedException("干什么！");
     }
 }

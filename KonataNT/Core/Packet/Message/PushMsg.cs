@@ -13,7 +13,9 @@ internal class PushMsg
 [ProtoContract]
 internal class PushMsgBody
 {
-    [ProtoMember(1)] public ResponseHead Head { get; set; }
+    [ProtoMember(1)] public ResponseHead ResponseHead { get; set; }
+    
+    [ProtoMember(2)] public ContentHead ContentHead { get; set; }
 }
 
 [ProtoContract]
@@ -30,4 +32,38 @@ internal class ResponseHead
     [ProtoMember(5)] public uint ToUin { get; set; }
     
     [ProtoMember(6)] public string? ToUid { get; set; }
+    
+    [ProtoMember(8)] public GrpRouting? Grp { get; set; }
+    
+    
+}
+
+[ProtoContract]
+internal class GrpRouting
+{
+    [ProtoMember(1)] public uint GroupUin { get; set; }
+    
+    [ProtoMember(2)] public uint Field2 { get; set; }
+    
+    [ProtoMember(3)] public uint Field3 { get; set; }
+    
+    [ProtoMember(4)] public string MemberCard { get; set; }
+    
+    [ProtoMember(5)] public uint Field4 { get; set; }
+    
+    [ProtoMember(6)] public uint Field5 { get; set; }
+    
+    [ProtoMember(7)] public string GroupName { get; set; }
+    
+    [ProtoMember(9)] public uint GroupFlag { get; set; }
+}
+
+[ProtoContract]
+internal class ContentHead
+{
+    [ProtoMember(1)] public uint Type { get; set; }
+    
+    [ProtoMember(5)] public uint Sequence { get; set; }
+    
+    [ProtoMember(6)] public uint Timestamp { get; set; }
 }

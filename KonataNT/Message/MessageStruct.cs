@@ -2,11 +2,11 @@ namespace KonataNT.Message;
 
 public class MessageStruct
 {
-    public DateTime Time { get; private set; }
+    public DateTime Time { get; internal set; }
 
-    public uint Sequence { get; private set; }
+    public uint Sequence { get; internal set; }
 
-    public MessageChain Chain { get; private set; }
+    public MessageChain Chain { get; internal set; }
 
     public enum Source
     {
@@ -19,7 +19,7 @@ public class MessageStruct
     /// <b>[In] [Out]</b>     <br/>
     /// Sender info
     /// </summary>
-    public (uint Uin, string Name) Sender { get; private set; }
+    public (uint Uin, string Name) Sender { get; internal set; }
 
     /// <summary>
     /// Construct fake source info

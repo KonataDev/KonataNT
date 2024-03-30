@@ -111,7 +111,7 @@ internal class PacketHandler : ClientListener
 
     public Task<byte[]> SendOidb(ushort command, ushort subCommand, byte[] body, bool isUid)
     {
-        string cmd = $"OidbSvcTrpcTcp.{command:0x}_{subCommand}";
+        string cmd = $"OidbSvcTrpcTcp.{command:x}_{subCommand}";
 
         var packet = new OidbSvcBase
         {
