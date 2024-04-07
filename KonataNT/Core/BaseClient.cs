@@ -45,7 +45,9 @@ public class BaseClient : IDisposable
     
     internal MessageHandler MessageHandler { get; }
     
-    internal ILogger Logger { get; init; }
+    internal HighwayHandler HighwayHandler { get; }
+    
+    internal ILogger Logger { get; }
     
     internal BaseClient(BotKeystore keystore, BotConfig config)
     {
@@ -58,6 +60,7 @@ public class BaseClient : IDisposable
         PacketHandler = new PacketHandler(this);
         CacheHandler = new CacheHandler(this);
         PushHandler = new PushHandler(this);
+        HighwayHandler = new HighwayHandler(this);
         MessageHandler = new MessageHandler(this);
         
         Logger = config.Logger ?? new DefaultLogger(EventEmitter);
